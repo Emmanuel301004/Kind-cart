@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Dashboard - Kind Kart</title>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-blue-600 text-white p-4">
+        <h1 class="text-center text-2xl font-bold">Kind Kart - Dashboard</h1>
+    </header>
+    <main class="p-6">
+        <section class="max-w-4xl mx-auto">
+            <h2 class="text-xl font-bold mb-4">Available Materials</h2>
+            <div id="materials" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Items will be dynamically populated here -->
+            </div>
+        </section>
+        <a href="cart.html" class="block text-center bg-green-500 text-white px-4 py-2 mt-6 rounded">Go to Cart</a>
+    </main>
+    <script>
+        fetch('../backend/list-items.php')
+            .then(response => response.json())
+            .then(data => {
+                const materialsDiv = document.getElementById('materials');
+                data.forEach(item => {
+                    materialsDiv.innerHTML += `
+                        <div class="bg-white p-4 rounded shadow">
+                            <h3 class="font-bold">${item.name}</h3>
+                            <p>${item.description}</p>
+                            <p class="font-bold">₹${item.price}</p>
+                            <button onclick="addToCart(${item.id})" class="bg-blue-600 text-white px-4 py-2 rounded mt-4">Add to Cart</button>
+                        </div>
+                    `;
+                });
+            });
+
+        function addToCart(id) {
+            fetch('../backend/add-to-cart.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ material_id: id })
+            })
+                .then(response => response.text())
+                .then(data => alert(data));
+        }
+    </script>
+</body>
+</html>
