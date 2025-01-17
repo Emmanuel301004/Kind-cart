@@ -73,6 +73,7 @@ Use a local server like XAMPP or WAMP to serve the PHP files.
 Open the platform:
 
 Access the platform via localhost in your browser.
+
 🌍 Deployment
 The platform is hosted on a reliable cloud service to ensure accessibility and scalability.
 
