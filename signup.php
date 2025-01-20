@@ -17,13 +17,14 @@ if ($result->num_rows > 0) {
     $user = $result->fetch_assoc();
     
     if (password_verify($password, $user['password'])) {
-        // Start session or redirect to dashboard
+        // Start session and set session variables
         session_start();
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['email'] = $user['email'];
-        echo "Welcome back, " . htmlspecialchars($user['email']) . "!";
-        // Redirect to dashboard or homepage (uncomment the next line if needed)
-        // header("Location: dashboard.php");
+
+        // Redirect to the dashboard or homepage
+        header("Location: dashboard.php");
+        exit(); // Always call exit() after header to ensure the script stops executing
     } else {
         echo "Email already exists, but the password is incorrect.";
     }
@@ -40,9 +41,10 @@ if ($result->num_rows > 0) {
         session_start();
         $_SESSION['user_id'] = $stmt->insert_id;
         $_SESSION['email'] = $email;
-        echo "Account created successfully and logged in!";
-        // Redirect to dashboard or homepage (uncomment the next line if needed)
-        // header("Location: dashboard.php");
+
+        // Redirect to the dashboard or homepage
+        header("Location: dashboard.php");
+        exit(); // Always call exit() after header to ensure the script stops executing
     } else {
         echo "Error: " . $stmt->error;
     }
