@@ -1,18 +1,56 @@
 <?php
 include 'db.php';
 
+// Get the email, password, and capabilities from the POST request
 $email = $_POST['email'];
 $password = $_POST['password'];
-$capabilities = $_POST['capabilities'];
+$capabilities = isset($_POST['capabilities']) ? $_POST['capabilities'] : null;
 
-$sql = "INSERT INTO users (email, password, capabilities) VALUES (?, ?, ?)";
+// Check if the email already exists in the database
+$sql = "SELECT * FROM users WHERE email = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("sss", $email, $password, $capabilities);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
 
-if ($stmt->execute()) {
-    echo "Account created successfully.";
+if ($result->num_rows > 0) {
+    // Email already exists, verify the password
+    $user = $result->fetch_assoc();
+    if (password_verify($password, $user['password'])) {
+        // Start session and log in the user
+        session_start();
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['capabilities'] = ucfirst($user['capabilities']); // Optional: store capabilities
+
+        // Redirect to the dashboard or homepage
+        header("Location: dashboard.php");
+        exit();
+    } else {
+        echo "Email already exists, but the password is incorrect.";
+    }
 } else {
-    echo "Error: " . $stmt->error;
+    // Email does not exist, create a new account
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    // Insert the new user into the database
+    $sql = "INSERT INTO users (email, password, capabilities) VALUES (?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $email, $hashedPassword, $capabilities);
+
+    if ($stmt->execute()) {
+        // Automatically log in the user after signup
+        session_start();
+        $_SESSION['user_id'] = $stmt->insert_id;
+        $_SESSION['email'] = $email;
+        $_SESSION['capabilities'] = ucfirst($capabilities); // Optional: store capabilities
+
+        // Redirect to the dashboard or homepage
+        header("Location: dashboard.php");
+        exit();
+    } else {
+        echo "Error: " . $stmt->error;
+    }
 }
 
 $stmt->close();
