@@ -13,93 +13,133 @@ if (!isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Book Exchange Dashboard</title>
     <style>
-        /* General Body Styling */
+        /* General Styling */
         body {
-            background-color: #1e1e1e;
-            color: white;
+            background-color: #f8f9fa;
+            color: #333;
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: #343a40;
+            color: white;
+            padding: 15px 20px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            height: 100vh;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        /* Container for the Dashboard */
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .navbar .logout {
+            background-color: #FF6347;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .navbar .logout:hover {
+            background-color: #e55347;
+        }
+
+        /* Dashboard Container */
         .dashboard-container {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 30px 40px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             text-align: center;
+            margin: 50px auto;
+            padding: 20px 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             width: 90%;
-            max-width: 500px;
+            max-width: 800px;
         }
 
-        /* Heading */
         h1 {
             font-size: 32px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: #4CAF50;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
         }
 
-        /* Welcome Message */
-        .welcome-message {
+        p {
             font-size: 18px;
-            margin-bottom: 30px;
-            color: #f1f1f1;
+            margin-bottom: 20px;
+            color: #555;
         }
 
-        /* Button */
-        .logout-btn {
+        .button-container {
+            margin-top: 30px;
+        }
+
+        .button-container a {
+            text-decoration: none;
+            margin: 0 10px;
             padding: 12px 20px;
-            background-color: #FF6347;
+            background-color: #4CAF50;
             color: white;
-            border: none;
             border-radius: 5px;
-            cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s ease;
         }
 
-        .logout-btn:hover {
-            background-color: #e55347;
+        .button-container a:hover {
+            background-color: #45a049;
         }
 
-        /* Responsive Design for smaller screens */
+        /* Responsive Design */
         @media (max-width: 600px) {
             .dashboard-container {
-                padding: 20px 25px;
+                padding: 20px;
             }
 
             h1 {
                 font-size: 28px;
             }
 
-            .welcome-message {
+            p {
                 font-size: 16px;
-            }
-
-            .logout-btn {
-                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
 
+<!-- Navbar -->
+<div class="navbar">
+    <div class="nav-links">
+        <a href="dashboard.php">Home</a>
+        <a href="buy_books.php">Buy Books</a>
+        <a href="sell_books.php">Sell Books</a>
+        <a href="profile.php">Profile</a>
+    </div>
+    <a href="logout.php" class="logout">Logout</a>
+</div>
+
+<!-- Dashboard Content -->
 <div class="dashboard-container">
-    <h1>Welcome to Your Dashboard</h1>
-    <p class="welcome-message">
-        Welcomes, <?php echo htmlspecialchars($_SESSION['email']); ?>!
-    </p>
-    <a href="logout.php">
-        <button class="logout-btn">Logout</button>
-    </a>
+    <h1>Welcome to the Book Exchange</h1>
+    <p>Hi, <?php echo htmlspecialchars($_SESSION['email']); ?>! <br> Find or sell your books effortlessly with our platform.</p>
+    <div class="button-container">
+        <a href="buy_books.php">Browse Books</a>
+        <a href="sell_books.php">Sell Your Books</a>
+    </div>
 </div>
 
 </body>
