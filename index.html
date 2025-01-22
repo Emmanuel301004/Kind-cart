@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Login System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="form-container">
+        <h1>User Login/Signup</h1>
+
+        <!-- Login Form -->
+        <form id="loginForm" method="POST" action="login.php">
+            <h2>Login</h2>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signupForm" method="POST" action="signup.php">
+            <h2>Create Account</h2>
+            <label for="email">Email:</label>
+            <input type="email" id="signupEmail" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="signupPassword" name="password" required>
+
+            <label for="capabilities">Capabilities:</label>
+            <select id="capabilities" name="capabilities" required>
+                <option value="buyer">Buyer</option>
+                <option value="seller">Seller</option>
+                <option value="both">Both</option>
+            </select>
+
+            <button type="submit">Sign Up</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
