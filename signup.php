@@ -14,38 +14,20 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    // Email already exists, verify the password
-    $user = $result->fetch_assoc();
-    if (password_verify($password, $user['password'])) {
-        // Start session and log in the user
-        session_start();
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['email'] = $user['email'];
-        $_SESSION['capabilities'] = ucfirst($user['capabilities']); // Optional: store capabilities
-
-        // Redirect to the dashboard or homepage
-        header("Location: dashboard.php");
-        exit();
-    } else {
-        echo "Email already exists, but the password is incorrect.";
-    }
+    echo "Email already exists.";
 } else {
-    // Email does not exist, create a new account
+    // Hash the password and insert new user into the database
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-    // Insert the new user into the database
     $sql = "INSERT INTO users (email, password, capabilities) VALUES (?, ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sss", $email, $hashedPassword, $capabilities);
 
     if ($stmt->execute()) {
-        // Automatically log in the user after signup
         session_start();
         $_SESSION['user_id'] = $stmt->insert_id;
         $_SESSION['email'] = $email;
-        $_SESSION['capabilities'] = ucfirst($capabilities); // Optional: store capabilities
+        $_SESSION['capabilities'] = ucfirst($capabilities); 
 
-        // Redirect to the dashboard or homepage
         header("Location: dashboard.php");
         exit();
     } else {

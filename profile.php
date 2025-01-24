@@ -122,16 +122,3 @@ $books_sold = ["Book 4", "Book 5"];
             <?php foreach ($books_bought as $book): ?>
                 <li><?php echo htmlspecialchars($book); ?></li>
             <?php endforeach; ?>
-        </ul>
-
-        <h3>Books You've Sold:</h3>
-        <ul>
-            <?php foreach ($books_sold as $book): ?>
-                <li><?php echo htmlspecialchars($book); ?></li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-</div>
-
-</body>
-</html>
