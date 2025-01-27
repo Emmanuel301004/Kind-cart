@@ -1,8 +1,8 @@
 <?php
 session_start();
-include 'db.php';
+include 'db.php'; // Database connection file
 
-// Check if user is logged in
+// Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.html");
     exit();
@@ -26,7 +26,6 @@ $stmt->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
-    <link rel="stylesheet" href="style.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -36,40 +35,40 @@ $stmt->close();
             padding: 0;
         }
 
-/* Navbar */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #2c3e50;
-    padding: 15px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2c3e50;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
-.navbar a {
-    color: #ecf0f1;
-    text-decoration: none;
-    margin-right: 15px;
-    font-size: 1rem;
-    transition: color 0.3s ease;
-}
+        .navbar a {
+            color: #ecf0f1;
+            text-decoration: none;
+            margin-right: 15px;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
 
-.navbar a:hover {
-    color: #bdc3c7;
-}
+        .navbar a:hover {
+            color: #bdc3c7;
+        }
 
-.navbar .logout {
-    background-color: #e74c3c;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-size: 1rem;
-    text-transform: uppercase;
-}
+        .navbar .logout {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
 
-.navbar .logout:hover {
-    background-color: #c0392b;
-}
+        .navbar .logout:hover {
+            background-color: #c0392b;
+        }
 
         .profile-container {
             margin: 50px auto;
@@ -124,11 +123,16 @@ $stmt->close();
         #saveBtn {
             display: none;
             margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-
 
 <div class="navbar">
     <div class="nav-links">
@@ -142,7 +146,6 @@ $stmt->close();
     <a href="logout.php" class="logout">Logout</a>
 </div>
 
-<!-- Profile Content -->
 <div class="profile-container">
     <h1>Your Profile</h1>
     <form action="update_profile.php" method="post" id="profileForm">

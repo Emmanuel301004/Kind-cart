@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+<<<<<<< HEAD
 // Database connection
 $host = 'localhost';
 $db = 'user_management';
@@ -13,11 +14,15 @@ if ($conn->connect_error) {
 }
 
 // Check if user is logged in
+=======
+// Check if the user is logged in
+>>>>>>> 8253c1ffbe1d13399d83cb5bcac285c931b16344
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.html");
     exit();
 }
 
+<<<<<<< HEAD
 $user_id = $_SESSION['user_id'];
 
 // Fetch all books from the database
@@ -41,6 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 $conn->close();
+=======
+// Simulating fetching available books for sale from the database
+$available_books = [
+    ["title" => "Book 1", "price" => "$20", "author" => "Author 1"],
+    ["title" => "Book 2", "price" => "$15", "author" => "Author 2"],
+    ["title" => "Book 3", "price" => "$25", "author" => "Author 3"],
+];
+>>>>>>> 8253c1ffbe1d13399d83cb5bcac285c931b16344
 ?>
 
 <!DOCTYPE html>
@@ -49,15 +62,24 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buy Books</title>
+<<<<<<< HEAD
     <link rel="stylesheet" href="style.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f9fafb;
+=======
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+>>>>>>> 8253c1ffbe1d13399d83cb5bcac285c931b16344
             margin: 0;
             padding: 0;
         }
 
+<<<<<<< HEAD
         h1 {
             font-family: 'Arial', sans-serif;
             color: #333;
@@ -126,22 +148,71 @@ $conn->close();
         .book-item p {
             font-size: 1rem;
             margin: 5px 0;
+=======
+        .navbar {
+            background-color: #343a40;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .book-list-container {
+            margin: 50px auto;
+            padding: 20px 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .book-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+>>>>>>> 8253c1ffbe1d13399d83cb5bcac285c931b16344
         }
 
         .book-item button {
             background-color: #4CAF50;
             color: white;
+<<<<<<< HEAD
             padding: 10px 20px;
             border: none;
             cursor: pointer;
             font-size: 16px;
             border-radius: 5px;
             transition: background-color 0.3s;
+=======
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+>>>>>>> 8253c1ffbe1d13399d83cb5bcac285c931b16344
         }
 
         .book-item button:hover {
             background-color: #45a049;
         }
+<<<<<<< HEAD
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -196,3 +267,40 @@ $conn->close();
 
 </body>
 </html>
+=======
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <div>
+        <a href="dashboard.php">Home</a>
+        <a href="buy_books.php">Buy Books</a>
+        <a href="sell_books.php">Sell Books</a>
+        <a href="profile.php">Profile</a>
+    </div>
+    <a href="logout.php" style="color: white;">Logout</a>
+</div>
+
+<!-- Book List -->
+<div class="book-list-container">
+    <h1>Available Books for Sale</h1>
+    <?php foreach ($available_books as $book): ?>
+        <div class="book-item">
+            <div>
+                <p><strong>Title:</strong> <?php echo htmlspecialchars($book['title']); ?></p>
+                <p><strong>Author:</strong> <?php echo htmlspecialchars($book['author']); ?></p>
+                <p><strong>Price:</strong> <?php echo htmlspecialchars($book['price']); ?></p>
+            </div>
+            <div>
+                <button>Buy Now</button>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+</body>
+</html>
+
+>>>>>>> 8253c1ffbe1d13399d83cb5bcac285c931b16344

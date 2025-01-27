@@ -1,15 +1,24 @@
 /* General styles for the website */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f7f6;
+    background: url('https://via.placeholder.com/1920x1080/cccccc/ffffff?text=Books+Background') no-repeat center center fixed; /* Background image */
+    background-size: cover;
+    color: #333;
     margin: 0;
     padding: 0;
 }
 
-.container {
-    width: 80%;
-    margin: 0 auto;
+/* Container styling */
+.container, .form-container {
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
     padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+    width: 80%;
+    max-width: 400px;
+    border: 2px solid #4CAF50;
+    text-align: center;
 }
 
 /* Header styling */
@@ -45,42 +54,41 @@ nav a:hover {
 
 /* Form styling */
 form {
-    background-color: white;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
 }
 
 form input, form textarea, form button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin: 10px 0;
-    border-radius: 4px;
+    border-radius: 5px;
     border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+form input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    background-color: #fff;
 }
 
 form button {
     background-color: #5cb85c;
     color: white;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
 }
 
 form button:hover {
     background-color: #4cae4c;
 }
 
-/* Message styling */
-div.message {
-    background-color: #f0f8ff;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-}
-
-div.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 4px;
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container, .form-container {
+        width: 90%;
+    }
 }

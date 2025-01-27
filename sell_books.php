@@ -65,52 +65,35 @@ $conn->close();
             padding: 0;
         }
 
-        h1 {
-            font-family: 'Arial', sans-serif;
-            color: #333;
-            font-size: 2rem;
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2c3e50;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        a {
+        .navbar a {
+            color: #ecf0f1;
             text-decoration: none;
+            margin-right: 15px;
+            font-size: 1rem;
+            transition: color 0.3s ease;
         }
-/* Navbar */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #2c3e50;
-    padding: 15px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
-.navbar a {
-    color: #ecf0f1;
-    text-decoration: none;
-    margin-right: 15px;
-    font-size: 1rem;
-    transition: color 0.3s ease;
-}
+        .navbar a:hover {
+            color: #bdc3c7;
+        }
 
-.navbar a:hover {
-    color: #bdc3c7;
-}
+        .navbar .logout {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
 
-.navbar .logout {
-    background-color: #e74c3c;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-size: 1rem;
-    text-transform: uppercase;
-}
-
-.navbar .logout:hover {
-    background-color: #c0392b;
-}
-
-
-        /* Form Container */
         .sell-form {
             max-width: 600px;
             margin: 40px auto;
@@ -122,7 +105,6 @@ $conn->close();
 
         .sell-form h1 {
             text-align: center;
-            margin-bottom: 20px;
             color: #4CAF50;
         }
 
@@ -130,7 +112,6 @@ $conn->close();
             display: block;
             margin-top: 15px;
             font-weight: bold;
-            color: #333;
         }
 
         .sell-form input, 
@@ -141,7 +122,6 @@ $conn->close();
             margin-top: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            font-size: 16px;
         }
 
         .sell-form button {
@@ -149,24 +129,6 @@ $conn->close();
             color: white;
             border: none;
             cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .sell-form button:hover {
-            background-color: #45a049;
-        }
-
-        .sell-form .price-options {
-            display: flex;
-            gap: 20px;
-            margin-top: 10px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .navbar div {
-                flex-direction: column;
-            }
         }
     </style>
     <script>
@@ -185,7 +147,6 @@ $conn->close();
     </script>
 </head>
 <body>
-
 <div class="navbar">
     <div class="nav-links">
         <a href="dashboard.php">Home</a>
@@ -225,15 +186,11 @@ $conn->close();
         </select>
 
         <label>Price Type:</label>
-        <div class="price-options">
-            <div>
-                <input type="radio" name="price_type" value="free" id="price_free" onclick="togglePriceField()" required>
-                <label for="price_free">Free</label>
-            </div>
-            <div>
-                <input type="radio" name="price_type" value="paid" id="price_paid" onclick="togglePriceField()">
-                <label for="price_paid">Paid</label>
-            </div>
+        <div>
+            <input type="radio" name="price_type" value="free" id="price_free" onclick="togglePriceField()" required>
+            <label for="price_free">Free</label>
+            <input type="radio" name="price_type" value="paid" id="price_paid" onclick="togglePriceField()">
+            <label for="price_paid">Paid</label>
         </div>
 
         <label for="price">Price:</label>
@@ -251,14 +208,3 @@ $conn->close();
 
 </body>
 </html>
-<script>
-document.querySelector("form").addEventListener("submit", function(event) {
-    const priceType = document.querySelector('input[name="price_type"]:checked').value;
-    const price = document.getElementById("price").value;
-
-    if (priceType === "paid" && (isNaN(price) || price <= 0)) {
-        event.preventDefault();
-        alert("Please enter a valid price greater than 0.");
-    }
-});
-</script>
