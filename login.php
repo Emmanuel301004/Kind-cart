@@ -20,7 +20,8 @@ if ($result->num_rows > 0) {
         session_start();
         $_SESSION['user_id'] = $user['id'];  // Assuming 'id' is the user ID field
         $_SESSION['email'] = $user['email']; // Store email in session
-        
+        $_SESSION['capabilities'] = ucfirst($user['capabilities']); // Optional: store capabilities
+
         // Redirect to the dashboard after successful login
         header("Location: dashboard.php");
         exit();
