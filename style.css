@@ -33,24 +33,7 @@ header h1 {
     margin: 0;
 }
 
-/* Navigation styling */
-nav {
-    background-color: #444;
-    padding: 10px;
-    text-align: center;
-}
 
-nav a {
-    color: white;
-    text-decoration: none;
-    padding: 10px 15px;
-    margin: 0 10px;
-    border-radius: 4px;
-}
-
-nav a:hover {
-    background-color: #555;
-}
 
 /* Form styling */
 form {
