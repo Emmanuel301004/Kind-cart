@@ -1,7 +1,6 @@
 <?php
 session_start();
 include 'db.php'; // Database connection file
-
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
     error_log("No session user_id found."); // Log an error if user_id is not found in the session
@@ -33,7 +32,7 @@ $stmt->close();
     <style>
         body {
             background-color: #f8f9fa;
-            color: #333;
+            color: white;
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
@@ -45,6 +44,7 @@ $stmt->close();
             justify-content: space-between;
             align-items: center;
             background-color: #2c3e50;
+            margin-top:-1.2%;
             padding: 15px 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
