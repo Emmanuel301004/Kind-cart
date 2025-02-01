@@ -20,5 +20,7 @@ if (!$stmt->fetch()) {
     error_log("No data found for user ID: $user_id"); // Log if no data is fetched
     $user_name = $email = $course = $semester = ''; // Set default empty values
 }
+echo "hello mame";
+echo "pokemon";
 $stmt->close();
 ?>
