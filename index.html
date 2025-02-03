@@ -3,28 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unified Login System</title>
+    <title>Sign Up</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="form-container">
-        <h1>User Login/Signup</h1>
-
-        <!-- Login Form -->
-        <form id="loginForm" method="POST" action="login.php">
-            <h2>Login</h2>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-
-            <button type="submit">Login</button>
-        </form>
-
-        <!-- Signup Form -->
+        <h1>Sign Up</h1>
         <form id="signupForm" method="POST" action="signup.php">
-            <h2>Create Account</h2>
             <label for="email">Email:</label>
             <input type="email" id="signupEmail" name="email" required>
 
@@ -33,8 +18,7 @@
 
             <button type="submit">Sign Up</button>
         </form>
+        <p>Already have an account? <a href="login.html">Login here</a></p>
     </div>
-
-    <script src="script.js"></script>
 </body>
 </html>

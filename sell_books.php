@@ -56,9 +56,9 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sell Books</title>
-    <link rel="stylesheet" href="style.css">
+    
     <style>
-        body {
+  body {
             font-family: 'Arial', sans-serif;
             background-color: #f9fafb;
             margin: 0;
@@ -93,43 +93,71 @@ $conn->close();
             border-radius: 4px;
             text-transform: uppercase;
         }
+.sell-form {
+    max-width: 900px;
+    margin: 80px auto 40px;
+    padding: 35px;
+    padding-right:60px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
 
-        .sell-form {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
 
-        .sell-form h1 {
-            text-align: center;
-            color: #4CAF50;
-        }
 
-        .sell-form label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-        }
+.sell-form h1 {
+    text-align: center;
+    color: #4CAF50;
+    margin-bottom: 20px;
+}
 
-        .sell-form input, 
-        .sell-form select, 
-        .sell-form button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+.sell-form label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #333;
+}
 
-        .sell-form button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+.sell-form input,
+.sell-form select,
+.sell-form button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.sell-form input:focus,
+.sell-form select:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+.sell-form button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.sell-form button:hover {
+    background-color: #388e3c;
+    transform: scale(1.05);
+}
+
+.sell-form div {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
     </style>
     <script>
         function togglePriceField() {

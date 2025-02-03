@@ -24,19 +24,31 @@ $user_id = $_SESSION['user_id'];
 $sql = "SELECT * FROM books";
 $result = $conn->query($sql);
 
+// Fetch user's cart items to disable already added books
+$cart_sql = "SELECT book_id FROM cart WHERE user_id = '$user_id'";
+$cart_result = $conn->query($cart_sql);
+$cart_items = [];
+
+while ($row = $cart_result->fetch_assoc()) {
+    $cart_items[] = $row['book_id'];
+}
+
 $alertMessage = ''; // Variable to hold alert message
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $book_id = $_POST['book_id'];
     $quantity = 1;  // Default quantity for cart
     
-    // Add to cart
-    $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
-    
-    if ($conn->query($sql) === TRUE) {
-        $alertMessage = 'Book added to cart!'; // Success message
-    } else {
-        $alertMessage = 'Error: ' . $conn->error; // Error message
+    if (!in_array($book_id, $cart_items)) {
+        // Add to cart
+        $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
+        if ($conn->query($sql) === TRUE) {
+            $alertMessage = 'Book added to cart!';
+            // Refresh page to update the button state
+            echo "<script>window.location.href='buy_books.php';</script>";
+        } else {
+            $alertMessage = 'Error: ' . $conn->error;
+        }
     }
 }
 
@@ -50,15 +62,26 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buy Books</title>
     <style>
-        body {
-            background-color: #f8f9fa;
-            color: #333;
+      /* General Styling */
+      body {
             font-family: 'Arial', sans-serif;
+            background-color: #f3f4f6;
             margin: 0;
             padding: 0;
+            color: #333;
         }
 
+        h1, h2 {
+            color: #222;
+            margin-bottom: 20px;
+        }
 
+        p {
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        /* Navbar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -85,52 +108,44 @@ $conn->close();
             color: white;
             padding: 8px 15px;
             border-radius: 4px;
+            font-size: 1rem;
             text-transform: uppercase;
         }
-        .book-list-container {
+
+        .navbar .logout:hover {
+            background-color: #c0392b;
+        }
+   .book-list-container {
+            width: 80%;
             margin: 50px auto;
-            padding: 20px 40px;
+            padding: 20px;
             background-color: #fff;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
-            width: 90%;
-            max-width: 800px;
         }
-
-        h1 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: #4CAF50;
-        }
-
         .book-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
             padding: 10px;
             background-color: #f1f1f1;
             border-radius: 5px;
+            margin-bottom: 10px;
         }
-
         .book-item button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
+            padding: 10px;
             border-radius: 5px;
+            cursor: pointer;
         }
-
-        .book-item button:hover {
-            background-color: #45a049;
+        .added {
+            background-color: gray;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div class="nav-links">
+    <div>
         <a href="dashboard.php">Home</a>
         <a href="buy_books.php">Buy Books</a>
         <a href="sell_books.php">Sell Books</a>
@@ -141,31 +156,29 @@ $conn->close();
     <a href="logout.php" class="logout">Logout</a>
 </div>
 
-<!-- Book List -->
 <div class="book-list-container">
     <h1>Available Books for Sale</h1>
     <?php while ($row = $result->fetch_assoc()): ?>
         <div class="book-item">
             <div>
-                <p><strong>Title:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
-                <p><strong>Author:</strong> <?php echo htmlspecialchars($row['owner_name']); ?></p>
-                <p><strong>Price:</strong> $<?php echo htmlspecialchars($row['price']); ?></p>
+                <p><strong>Title:</strong> <?= htmlspecialchars($row['title']); ?></p>
+                <p><strong>Author:</strong> <?= htmlspecialchars($row['owner_name']); ?></p>
+                <p><strong>Price:</strong> $<?= htmlspecialchars($row['price']); ?></p>
             </div>
             <div>
                 <form method="POST">
-                    <input type="hidden" name="book_id" value="<?php echo $row['id']; ?>">
-                    <button type="submit">Add to Cart</button>
+                    <input type="hidden" name="book_id" value="<?= $row['id']; ?>">
+                    <button type="submit" <?= in_array($row['id'], $cart_items) ? 'class="added" disabled' : '' ?>>
+                        <?= in_array($row['id'], $cart_items) ? 'Added to Cart' : 'Add to Cart' ?>
+                    </button>
                 </form>
             </div>
         </div>
     <?php endwhile; ?>
 </div>
 
-<!-- JavaScript for Alert Message -->
 <?php if (!empty($alertMessage)): ?>
-    <script>
-        alert("<?php echo $alertMessage; ?>");
-    </script>
+    <script>alert("<?= $alertMessage; ?>");</script>
 <?php endif; ?>
 
 </body>
