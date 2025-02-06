@@ -44,8 +44,8 @@ $total_price = 0;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Cart</title>
     <style>
-         /* General Styling */
-         body {
+        /* General Styling */
+        body {
             font-family: 'Arial', sans-serif;
             background-color: #f3f4f6;
             margin: 0;

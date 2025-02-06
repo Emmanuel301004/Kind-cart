@@ -21,6 +21,15 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $alertMessage = ''; // Variable for alerts
 
+// Function to generate a 4-word unique Book ID
+function generateBookID() {
+    $words = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliet', 
+              'Kilo', 'Lima', 'Mike', 'November', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 
+              'Uniform', 'Victor', 'Whiskey', 'X-ray', 'Yankee', 'Zulu'];
+    shuffle($words);
+    return $words[0] . '-' . $words[1] . '-' . $words[2] . '-' . $words[3];
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $title = $_POST['title'];
     $owner_name = $_POST['owner_name'];
@@ -30,17 +39,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $book_condition = $_POST['book_condition'];
     $price_type = $_POST['price_type'];
     $price = $price_type == 'paid' ? $_POST['price'] : 0; // If free, price is 0
+    $book_id = generateBookID();
 
     // Validate price for "Paid" option
     if ($price_type == 'paid' && (!is_numeric($price) || $price <= 0)) {
         $alertMessage = "Invalid price! Please enter a valid amount greater than 0.";
     } else {
         // Insert book details into the database
-        $sql = "INSERT INTO books (title, owner_name, contact, course, semester, book_condition, price, user_id) 
-                VALUES ('$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id')";
+        $sql = "INSERT INTO books (book_id, title, owner_name, contact, course, semester, book_condition, price, user_id) 
+                VALUES ('$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id')";
 
         if ($conn->query($sql) === TRUE) {
-            $alertMessage = "Book listed successfully!";
+            $alertMessage = "Book listed successfully! Your Book ID: $book_id";
         } else {
             $alertMessage = "Error: " . $conn->error;
         }
@@ -49,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 $conn->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

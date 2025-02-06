@@ -40,21 +40,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $quantity = 1;  // Default quantity for cart
     
     if (!in_array($book_id, $cart_items)) {
-        // Add to cart
-        $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
-        if ($conn->query($sql) === TRUE) {
+        // Use prepared statements to prevent SQL injection
+        $stmt = $conn->prepare("INSERT INTO cart (user_id, book_id, quantity) VALUES (?, ?, ?)");
+        $stmt->bind_param("iii", $user_id, $book_id, $quantity);
+        
+        if ($stmt->execute()) {
             $alertMessage = 'Book added to cart!';
             // Refresh page to update the button state
             echo "<script>window.location.href='buy_books.php';</script>";
         } else {
-            $alertMessage = 'Error: ' . $conn->error;
+            $alertMessage = 'Error: ' . $stmt->error;
         }
+        $stmt->close();
     }
-}
-
-$conn->close();
-?>
-
+} ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -161,6 +160,7 @@ $conn->close();
     <?php while ($row = $result->fetch_assoc()): ?>
         <div class="book-item">
             <div>
+                
                 <p><strong>Title:</strong> <?= htmlspecialchars($row['title']); ?></p>
                 <p><strong>Author:</strong> <?= htmlspecialchars($row['owner_name']); ?></p>
                 <p><strong>Price:</strong> $<?= htmlspecialchars($row['price']); ?></p>

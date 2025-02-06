@@ -21,36 +21,52 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Fetch user's cart items
-$sql = "SELECT c.book_id, b.title, b.price, c.quantity
+$sql = "SELECT c.book_id, b.title, c.quantity, b.price
         FROM cart c
         JOIN books b ON c.book_id = b.id
-        WHERE c.user_id = '$user_id'";
-$result = $conn->query($sql);
+        WHERE c.user_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
-// If the user submits an order (fakes payment and status)
-$alertMessage = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Simulate payment process
-    echo "<script>alert('Payment processed successfully!');</script>";
+    $conn->begin_transaction();
+    try {
+        // Insert ordered items into orderedhistory
+        $order_query = "INSERT INTO orderedhistory (book_id, book_name, price, order_date)
+                        SELECT c.book_id, b.title, b.price, NOW()
+                        FROM cart c
+                        JOIN books b ON c.book_id = b.id
+                        WHERE c.user_id = ?";
+        $stmt = $conn->prepare($order_query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        
+        // Remove ordered books from books table
+        $delete_books_query = "DELETE FROM books WHERE id IN (SELECT book_id FROM cart WHERE user_id = ?)";
+        $stmt = $conn->prepare($delete_books_query);
+        $stmt->bind_param("i", $book);
+        $stmt->execute();
 
-    // Insert the order into the database
-    $order_status = 'Processing'; // This is the fake status
-    $order_query = "INSERT INTO orders (user_id, book_id, title, price, created_at)
-                    SELECT user_id, book_id, title, price, NOW()
-                    FROM cart WHERE user_id = '$user_id'";
-    
-    if ($conn->query($order_query) === TRUE) {
         // Clear the cart after order
-        $clear_cart_query = "DELETE FROM cart WHERE user_id = '$user_id'";
-        $conn->query($clear_cart_query);
+        $clear_cart_query = "DELETE FROM cart WHERE user_id = ?";
+        $stmt = $conn->prepare($clear_cart_query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
 
-        // Simulate updating order status
-        $alertMessage = 'Order placed successfully! Your order is being processed. Estimated delivery: 3-5 business days.';
-    } else {
-        $alertMessage = 'Error: ' . $conn->error;
+        $conn->commit();
+
+        // Redirect to success page
+        header("Location: success.php");
+        exit();
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo "Error processing order: " . $e->getMessage();
     }
 }
 
+$stmt->close();
 $conn->close();
 ?>
 
@@ -61,7 +77,6 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Summary</title>
     <style>
-        /* General Styling */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f3f4f6;
@@ -73,11 +88,6 @@ $conn->close();
         h1, h2 {
             color: #222;
             margin-bottom: 20px;
-        }
-
-        p {
-            color: #555;
-            font-size: 1.1rem;
         }
 
         .navbar {
@@ -101,19 +111,6 @@ $conn->close();
             color: #bdc3c7;
         }
 
-        .navbar .logout {
-            background-color: #e74c3c;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            font-size: 1rem;
-            text-transform: uppercase;
-        }
-
-        .navbar .logout:hover {
-            background-color: #c0392b;
-        }
-
         .cart-container {
             width: 80%;
             margin: 50px auto;
@@ -130,14 +127,6 @@ $conn->close();
             background-color: #f1f1f1;
             border-radius: 5px;
             margin-bottom: 10px;
-        }
-
-        .cart-item .price {
-            font-weight: bold;
-        }
-
-        .cart-item .quantity {
-            color: #555;
         }
 
         .order-summary {
@@ -160,18 +149,6 @@ $conn->close();
         .order-button:hover {
             background-color: #2ecc71;
         }
-
-        /* Order Status */
-        .order-status {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: #f4e1d2;
-            border-radius: 5px;
-        }
-
-        .order-status p {
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -192,37 +169,22 @@ $conn->close();
     <h1>Your Cart</h1>
 
     <?php if ($result->num_rows > 0): ?>
-        <?php $total_price = 0; ?>
         <?php while ($row = $result->fetch_assoc()): ?>
             <div class="cart-item">
                 <div>
                     <p><strong>Title:</strong> <?= htmlspecialchars($row['title']); ?></p>
                     <p><strong>Quantity:</strong> <?= $row['quantity']; ?></p>
-                </div>
-                <div>
-                    <p class="price">$<?= number_format($row['price'], 2); ?></p>
+                    <p><strong>Price:</strong> ₹<?= number_format($row['price'], 2); ?></p>
                 </div>
             </div>
-            <?php $total_price += $row['price'] * $row['quantity']; ?>
         <?php endwhile; ?>
-        <div class="order-summary">
-            <h2>Order Summary</h2>
-            <p><strong>Total Price:</strong> $<?= number_format($total_price, 2); ?></p>
-        </div>
         <form method="POST">
             <button type="submit" class="order-button">Proceed to Order</button>
         </form>
     <?php else: ?>
         <p>Your cart is empty. Please add items to your cart.</p>
     <?php endif; ?>
-
 </div>
-
-<?php if (!empty($alertMessage)): ?>
-    <div class="order-status">
-        <p><?= $alertMessage; ?></p>
-    </div>
-<?php endif; ?>
 
 </body>
 </html>
