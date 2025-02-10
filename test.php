@@ -1,26 +1,37 @@
-<?php
-session_start();
-include 'db.php'; // Database connection file
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    error_log("No session user_id found."); // Log an error if user_id is not found in the session
-    header("Location: index.html");
-    exit();
+<style>
+        /* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2c3e50;
+    padding: 15px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-$user_id = $_SESSION['user_id'];
-
-// Fetching user data from the database
-$sql = "SELECT name, email, course, semester FROM users WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$stmt->bind_result($user_name, $email, $course, $semester);
-if (!$stmt->fetch()) {
-    error_log("No data found for user ID: $user_id"); // Log if no data is fetched
-    $user_name = $email = $course = $semester = ''; // Set default empty values
+.navbar a {
+    color: #ecf0f1;
+    text-decoration: none;
+    margin-right: 15px;
+    font-size: 1rem;
+    transition: color 0.3s ease;
 }
-echo "hello mame";
-echo "pokemon";
-$stmt->close();
-?>
+
+.navbar a:hover {
+    color: #bdc3c7;
+}
+
+.navbar .logout {
+    background-color: #e74c3c;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.navbar .logout:hover {
+    background-color: #c0392b;
+}
+
+    </style>

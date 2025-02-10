@@ -23,18 +23,29 @@ $user_id = $_SESSION['user_id'];
 // Fetch all books from the database
 $sql = "SELECT * FROM books";
 $result = $conn->query($sql);
+$cartItems = [];
+
+// Fetch current cart items for the user
+$cartSql = "SELECT book_id FROM cart WHERE user_id = '$user_id'";
+$cartResult = $conn->query($cartSql);
+if ($cartResult) {
+    while ($cartRow = $cartResult->fetch_assoc()) {
+        $cartItems[] = $cartRow['book_id'];
+    }
+}
 
 $alertMessage = ''; // Variable to hold alert message
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $book_id = $_POST['book_id'];
     $quantity = 1;  // Default quantity for cart
-    
+
     // Add to cart
     $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
-    
+
     if ($conn->query($sql) === TRUE) {
         $alertMessage = 'Book added to cart!'; // Success message
+        $cartItems[] = $book_id; // Add book to local cart items list
     } else {
         $alertMessage = 'Error: ' . $conn->error; // Error message
     }
@@ -57,7 +68,6 @@ $conn->close();
             margin: 0;
             padding: 0;
         }
-
 
         .navbar {
             display: flex;
@@ -87,6 +97,7 @@ $conn->close();
             border-radius: 4px;
             text-transform: uppercase;
         }
+
         .book-list-container {
             margin: 50px auto;
             padding: 20px 40px;
@@ -125,6 +136,11 @@ $conn->close();
         .book-item button:hover {
             background-color: #45a049;
         }
+
+        .book-item button.added {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -154,7 +170,9 @@ $conn->close();
             <div>
                 <form method="POST">
                     <input type="hidden" name="book_id" value="<?php echo $row['id']; ?>">
-                    <button type="submit">Add to Cart</button>
+                    <button type="submit" class="<?php echo in_array($row['id'], $cartItems) ? 'added' : ''; ?>">
+                        <?php echo in_array($row['id'], $cartItems) ? 'Added to Cart' : 'Add to Cart'; ?>
+                    </button>
                 </form>
             </div>
         </div>
