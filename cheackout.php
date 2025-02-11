@@ -19,21 +19,25 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Fetch cart items
-$stmt = $conn->prepare("SELECT c.id, b.title, b.price FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?");
+$stmt = $conn->prepare("SELECT c.book_id, b.title, b.price FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Simulate payment process
-    $payment_status = "Payment Successful! Your order has been placed.";
-
-    // Insert orders and clear the cart
+    // Insert orders and delete books
     while ($row = $result->fetch_assoc()) {
-        $book_id = $row['id'];
+        $book_id = $row['book_id'];
+
+        // Insert into orders
         $stmt_order = $conn->prepare("INSERT INTO orders (user_id, book_id) VALUES (?, ?)");
         $stmt_order->bind_param("ii", $user_id, $book_id);
         $stmt_order->execute();
+
+        // Delete book from books table
+        $stmt_delete_book = $conn->prepare("DELETE FROM books WHERE id = ?");
+        $stmt_delete_book->bind_param("i", $book_id);
+        $stmt_delete_book->execute();
     }
 
     // Clear the cart
@@ -41,7 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt_clear->bind_param("i", $user_id);
     $stmt_clear->execute();
 
-    echo "<script>alert('$payment_status'); window.location.href='orders.php';</script>";
+    // Redirect to ordered page
+    header("Location: ordered.php");
+    exit();
 }
 ?>
 
