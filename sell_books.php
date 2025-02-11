@@ -35,9 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($price_type == 'paid' && (!is_numeric($price) || $price <= 0)) {
         $alertMessage = "Invalid price! Please enter a valid amount greater than 0.";
     } else {
-        // Insert book details into the database
-        $sql = "INSERT INTO books (title, owner_name, contact, course, semester, book_condition, price, user_id) 
-                VALUES ('$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id')";
+        // Generate a unique book_id
+$book_id = 'BOOK-' . uniqid();
+
+$sql = "INSERT INTO books (book_id, title, owner_name, contact, course, semester, book_condition, price, user_id) 
+        VALUES ('$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id')";
+
 
         if ($conn->query($sql) === TRUE) {
             $alertMessage = "Book listed successfully!";
