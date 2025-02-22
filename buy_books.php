@@ -50,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $alertMessage = 'Error: ' . $conn->error; // Error message
     }
 }
-
 $conn->close();
 ?>
 
@@ -169,10 +168,9 @@ $conn->close();
             </div>
             <div>
                 <form method="POST">
-                    <input type="hidden" name="book_id" value="<?php echo $row['id']; ?>">
-                    <button type="submit" class="<?php echo in_array($row['id'], $cartItems) ? 'added' : ''; ?>">
-                        <?php echo in_array($row['id'], $cartItems) ? 'Added to Cart' : 'Add to Cart'; ?>
-                    </button>
+                <input type="hidden" name="book_id" value="<?php echo $row['book_id']; ?>">
+                <button type="submit" class="<?php echo in_array($row['book_id'], $cartItems) ? 'added' : ''; ?>">
+
                 </form>
             </div>
         </div>
