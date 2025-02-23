@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+// Database connection
 $host = 'localhost';
 $db = 'user_management';
 $user = 'root';
@@ -11,6 +12,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.html");
     exit();
@@ -18,24 +20,28 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Handle delete action
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_id'])) {
-    $cart_id = $_POST['delete_id'];
-    $stmt = $conn->prepare("DELETE FROM cart WHERE id = ? AND user_id = ?");
-    $stmt->bind_param("ii", $cart_id, $user_id);
-    if ($stmt->execute()) {
-        echo "<script>alert('Item removed from cart.'); window.location.href='cart.php';</script>";
-    } else {
-        echo "<script>alert('Failed to remove item.');</script>";
-    }
-    $stmt->close();
+// Remove item from cart
+if (isset($_GET['remove'])) {
+    $book_id = $_GET['remove'];
+    $deleteSql = "DELETE FROM cart WHERE user_id = '$user_id' AND book_id = '$book_id'";
+    $conn->query($deleteSql);
+    header("Location: cart.php");
+    exit();
 }
 
-// Fetch cart items
-$stmt = $conn->prepare("SELECT c.id, b.title, b.price FROM cart c JOIN books b ON c.book_id = b.id WHERE c.user_id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
+// Clear entire cart
+if (isset($_GET['clear'])) {
+    $clearSql = "DELETE FROM cart WHERE user_id = '$user_id'";
+    $conn->query($clearSql);
+    header("Location: cart.php");
+    exit();
+}
+
+// Fetch cart items from database
+$cartSql = "SELECT books.book_id, books.title, books.price, cart.quantity FROM cart JOIN books ON cart.book_id = books.book_id WHERE cart.user_id = '$user_id'";
+$cartResult = $conn->query($cartSql);
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -43,126 +49,43 @@ $result = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cart</title>
+    <title>Cart</title>
     <style>
-        /* Include your original CSS styles */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-        .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #2c3e50;
-    padding: 15px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.navbar a {
-    color: #ecf0f1;
-    text-decoration: none;
-    margin-right: 15px;
-    font-size: 1rem;
-    transition: color 0.3s ease;
-}
-
-.navbar a:hover {
-    color: #bdc3c7;
-}
-
-.navbar .logout {
-    background-color: #e74c3c;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-size: 1rem;
-    text-transform: uppercase;
-}
-
-.navbar .logout:hover {
-    background-color: #c0392b;
-}
-        .cart-container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #ddd;
-        }
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-        .cart-item button {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .cart-item button:hover {
-            background-color: #c0392b;
-        }
-        .checkout-btn {
-            background-color: #2ecc71;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-align: center;
-            display: inline-block;
-            margin-top: 20px;
-        }
-        .checkout-btn:hover {
-            background-color: #27ae60;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; }
+        h2 { color: #4CAF50; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #4CAF50; color: white; }
+        .btn { padding: 5px 10px; color: white; text-decoration: none; border-radius: 4px; }
+        .remove { background: #e74c3c; }
+        .clear { background: #f39c12; }
+        .checkout { background: #3498db; }
     </style>
 </head>
 <body>
-<div class="navbar">
-    <div class="nav-links">
-        <a href="dashboard.php">Home</a>
-        <a href="buy_books.php">Buy Books</a>
-        <a href="sell_books.php">Sell Books</a>
-        <a href="cart.php">Cart</a>
-        <a href="orders.php">Orders</a>
-        <a href="profile.php">Profile</a>
-    </div>
-    <a href="logout.php" class="logout">Logout</a>
-</div>
-
-<div class="cart-container">
-    <h1>Your Cart</h1>
-
-    <?php if ($result->num_rows > 0): ?>
-        <?php while ($row = $result->fetch_assoc()): ?>
-            <div class="cart-item">
-                <div>
-                    <p><strong>Title:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
-                    <p><strong>Price:</strong> $<?php echo htmlspecialchars($row['price']); ?></p>
-                </div>
-                <form method="POST" action="cart.php">
-                    <input type="hidden" name="delete_id" value="<?php echo $row['id']; ?>">
-                    <button type="submit">Remove</button>
-                </form>
-            </div>
-        <?php endwhile; ?>
-        <a href="cheackout.php" class="checkout-btn">Proceed to Checkout</a>
-    <?php else: ?>
+    <h2>Your Shopping Cart</h2>
+    <?php if ($cartResult->num_rows == 0): ?>
         <p>Your cart is empty.</p>
+    <?php else: ?>
+        <table>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Remove</th>
+            </tr>
+            <?php while ($row = $cartResult->fetch_assoc()): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($row['title']); ?></td>
+                    <td>$<?php echo number_format($row['price'], 2); ?></td>
+                    <td><?php echo htmlspecialchars($row['quantity']); ?></td>
+                    <td><a href="cart.php?remove=<?php echo $row['book_id']; ?>" class="btn remove">Remove</a></td>
+                </tr>
+            <?php endwhile; ?>
+        </table>
+        <br>
+        <a href="checkout.php" class="btn checkout">Proceed to Checkout</a> |
+        <a href="cart.php?clear=true" class="btn clear">Clear Cart</a>
     <?php endif; ?>
-</div>
 </body>
 </html>

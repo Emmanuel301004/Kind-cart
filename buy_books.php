@@ -36,18 +36,24 @@ if ($cartResult) {
 
 $alertMessage = ''; // Variable to hold alert message
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['book_id'])) {
     $book_id = $_POST['book_id'];
     $quantity = 1;  // Default quantity for cart
 
-    // Add to cart
-    $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
+    // Check if the book is already in the cart
+    $checkCartSql = "SELECT * FROM cart WHERE user_id = '$user_id' AND book_id = '$book_id'";
+    $checkCartResult = $conn->query($checkCartSql);
 
-    if ($conn->query($sql) === TRUE) {
-        $alertMessage = 'Book added to cart!'; // Success message
-        $cartItems[] = $book_id; // Add book to local cart items list
+    if ($checkCartResult->num_rows == 0) { // Only insert if book is not already in the cart
+        $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
+        if ($conn->query($sql) === TRUE) {
+            $alertMessage = 'Book added to cart!';
+            $cartItems[] = $book_id;
+        } else {
+            $alertMessage = 'Error: ' . $conn->error;
+        }
     } else {
-        $alertMessage = 'Error: ' . $conn->error; // Error message
+        $alertMessage = 'This book is already in your cart.';
     }
 }
 $conn->close();
@@ -168,9 +174,10 @@ $conn->close();
             </div>
             <div>
                 <form method="POST">
-                <input type="hidden" name="book_id" value="<?php echo $row['book_id']; ?>">
-                <button type="submit" class="<?php echo in_array($row['book_id'], $cartItems) ? 'added' : ''; ?>">
-
+                    <input type="hidden" name="book_id" value="<?php echo $row['book_id']; ?>">
+                    <button type="submit" class="<?php echo in_array($row['book_id'], $cartItems) ? 'added' : ''; ?>">
+                        <?php echo in_array($row['book_id'], $cartItems) ? 'Added to Cart' : 'Add to Cart'; ?>
+                    </button>
                 </form>
             </div>
         </div>
