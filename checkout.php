@@ -1,98 +1,61 @@
 <?php
 session_start();
-include "db.php"; // Database connection
+include 'db.php'; // Include your database connection file
 
-if (!isset($_SESSION["user_id"])) {
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
-$user_id = $_SESSION["user_id"];
+$user_id = $_SESSION['user_id'];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $payment_method = $_POST['payment_method'];
-    $address = $_POST['address']; // Get the address from the form
+// Fetch cart items
+$cart_items = mysqli_query($conn, "SELECT cart.*, books.title, books.price, books.owner_name, books.contact, books.course, books.semester, books.book_condition, books.status 
+                                   FROM cart 
+                                   JOIN books ON cart.book_id = books.book_id 
+                                   WHERE cart.user_id='$user_id'");
 
-    if (empty($address)) {
-        echo "<script>alert('Please enter your delivery address!');</script>";
-    } else {
-        if ($payment_method == "card") {
-            $card_number = $_POST['card_number'];
-            $card_name = $_POST['card_name'];
-            $expiry = $_POST['expiry'];
-            $cvv = $_POST['cvv'];
-
-            if (empty($card_number) || empty($card_name) || empty($expiry) || empty($cvv)) {
-                echo "<script>alert('Please fill in all card details!');</script>";
-            } else {
-                // Dummy Payment Processing (Replace with actual payment gateway logic)
-                $payment_success = true;
-
-                if ($payment_success) {
-                    processOrder($conn, $user_id, $address);
-                } else {
-                    echo "<script>alert('Payment Failed! Try again.');</script>";
-                }
-            }
-        } elseif ($payment_method == "cod") {
-            processOrder($conn, $user_id, $address);
-        }
-    }
+// Calculate total amount
+$total_amount = 0;
+mysqli_data_seek($cart_items, 0);
+while ($cart = mysqli_fetch_assoc($cart_items)) {
+    $total_amount += $cart['price'] * $cart['quantity'];
 }
 
-function processOrder($conn, $user_id, $address) {
-    // Fetch book details from cart and books table
-    $bookDetailsQuery = "SELECT books.book_id, books.title, books.owner_name, books.contact, books.course, books.semester, books.book_condition, books.price 
-                         FROM cart 
-                         JOIN books ON cart.book_id = books.book_id 
-                         WHERE cart.user_id = '$user_id'";
-    
-    $bookDetailsResult = $conn->query($bookDetailsQuery);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $address = mysqli_real_escape_string($conn, $_POST['address']);
+    $payment_method = $_POST['payment_method'];
+    $card_number = isset($_POST['card_number']) ? $_POST['card_number'] : null;
+    $expiry_date = isset($_POST['expiry_date']) ? $_POST['expiry_date'] : null;
+    $cvv = isset($_POST['cvv']) ? $_POST['cvv'] : null;
 
-    if ($bookDetailsResult->num_rows > 0) {
-        $order_id = uniqid(); // Generate a unique order ID
-
-        while ($row = $bookDetailsResult->fetch_assoc()) {
-            $book_id = $row['book_id'];
-            $title = $row['title'];
-            $owner_name = $row['owner_name'];
-            $contact = $row['contact'];
-            $course = $row['course'];
-            $semester = $row['semester'];
-            $book_condition = $row['book_condition'];
-            $price = $row['price'];
-
-            // Insert into order_items table
-            $insertOrderItem = "INSERT INTO order_items (order_id, book_id, book_title, book_price, quantity) 
-                                VALUES ('$order_id', '$book_id', '$title', '$price', 1)";
-            if (!$conn->query($insertOrderItem)) {
-                echo "<script>alert('Error adding items to order.');</script>";
-                return;
-            }
-
-            // Insert into orders table
-            $insertOrder = "INSERT INTO orders (order_id, user_id, book_id, book_title, owner_name, contact, course, semester, book_condition, book_price, order_date, address) 
-                            VALUES ('$order_id', '$user_id', '$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', NOW(), '$address')";
-            if (!$conn->query($insertOrder)) {
-                echo "<script>alert('Error placing order.');</script>";
-                return;
-            }
-        }
-
-        // Remove books from inventory
-        $deleteBooks = "DELETE FROM books WHERE book_id IN (SELECT book_id FROM cart WHERE user_id = '$user_id')";
-        if (!$conn->query($deleteBooks)) {
-            echo "<script>alert('Error removing books from inventory.');</script>";
-        }
-
-        // Clear the cart
-        $conn->query("DELETE FROM cart WHERE user_id = '$user_id'");
-
-        echo "<script>alert('Payment Successful! Your order has been placed.'); window.location='success.php';</script>";
+    if ($payment_method == 'Card' && (!$card_number || !$expiry_date || !$cvv)) {
+        echo "<script>alert('Please enter all card details!'); window.history.back();</script>";
         exit();
-    } else {
-        echo "<script>alert('No items in the cart!');</script>";
     }
+
+    // Insert order details into orders table and update book status to 'Reserved'
+    mysqli_data_seek($cart_items, 0);
+    while ($cart = mysqli_fetch_assoc($cart_items)) {
+        $book_id = $cart['book_id'];
+        $quantity = $cart['quantity'];
+
+        // Insert order details
+        $order_query = "INSERT INTO orders (user_id, book_id, order_date, address, book_title, owner_name, contact, course, semester, book_condition, book_price) 
+                        VALUES ('$user_id', '$book_id', NOW(), '$address', '{$cart['title']}', '{$cart['owner_name']}', '{$cart['contact']}', '{$cart['course']}', '{$cart['semester']}', '{$cart['book_condition']}', '{$cart['price']}')";
+        mysqli_query($conn, $order_query);
+
+        // Update book status to 'Reserved'
+        $update_status_query = "UPDATE books SET status='Reserved' WHERE book_id='$book_id'";
+        mysqli_query($conn, $update_status_query);
+    }
+
+    // Clear cart after order placement
+    mysqli_query($conn, "DELETE FROM cart WHERE user_id='$user_id'");
+
+    // Redirect to success page
+    header("Location: success.php");
+    exit();
 }
 ?>
 
@@ -102,10 +65,42 @@ function processOrder($conn, $user_id, $address) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout</title>
+    <script>
+        function toggleCardDetails() {
+            let paymentMethod = document.getElementById('payment_method').value;
+            let cardDetails = document.getElementById('card-details');
+            cardDetails.style.display = paymentMethod === 'Card' ? 'block' : 'none';
+        }
+
+        function validateCardDetails(input, type) {
+            let value = input.value;
+            let isValid = false;
+
+            if (type === 'card_number') {
+                isValid = /^[0-9]{16}$/.test(value);
+            } else if (type === 'cvv') {
+                isValid = /^[0-9]{3}$/.test(value);
+            }
+
+            input.style.borderColor = isValid ? 'green' : 'red';
+        }
+
+        function formatExpiryDate(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove non-numeric characters
+            if (value.length > 4) {
+                value = value.slice(0, 4); // Limit to MMYY format
+            }
+            if (value.length >= 3) {
+                input.value = value.slice(0, 2) + '/' + value.slice(2);
+            } else {
+                input.value = value;
+            }
+        }
+    </script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Poppins', sans-serif;
+            background: #f6f9fc;
             margin: 0;
             padding: 0;
             display: flex;
@@ -113,97 +108,95 @@ function processOrder($conn, $user_id, $address) {
             align-items: center;
             height: 100vh;
         }
-
         .checkout-container {
-            width: 50%;
-            background: white;
+            width: 60%;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 20px;
+        }
+        .cart-items {
+            flex: 1;
+            background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
+        .cart-items h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
         }
-
+        .checkout-form {
+            flex: 1;
+        }
         label {
-            font-weight: bold;
+            font-weight: 600;
+            display: block;
+            margin-top: 12px;
         }
-
-        textarea, input {
+        textarea, input, select {
             width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px;
+            margin-top: 6px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
         }
-
-        .radio-group {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-        }
-
         .card-details {
             display: none;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
         }
-
-        button {
+        .btn {
             width: 100%;
-            padding: 10px;
-            background-color: #28a745;
+            padding: 14px;
+            background: rgb(8, 175, 44);
             border: none;
             color: white;
-            font-size: 16px;
-            border-radius: 5px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #218838;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-
-<div class="checkout-container">
-    <h2>Checkout</h2>
-    <form method="POST">
-        <label>Delivery Address:</label>
-        <textarea name="address" required></textarea>
-
-        <label>Payment Method:</label>
-        <div class="radio-group">
-            <input type="radio" name="payment_method" value="cod" required onclick="toggleCardDetails(false)"> Cash on Delivery (COD)
-            <input type="radio" name="payment_method" value="card" required onclick="toggleCardDetails(true)"> Credit/Debit Card
+    <div class="checkout-container">
+        <div class="cart-items">
+            <h3>Your Cart Items</h3>
+            <ul>
+                <?php
+                mysqli_data_seek($cart_items, 0);
+                while ($cart = mysqli_fetch_assoc($cart_items)): ?>
+                    <li><?php echo htmlspecialchars($cart['title']) . " - $" . number_format($cart['price'], 2) . " x " . $cart['quantity']; ?></li>
+                <?php endwhile; ?>
+            </ul>
+            <div class="total-amount">Total Amount: $<?php echo number_format($total_amount, 2); ?></div>
         </div>
-
-        <div class="card-details">
-            <label>Card Number:</label>
-            <input type="text" name="card_number" placeholder="1234 5678 9012 3456">
-            <label>Cardholder Name:</label>
-            <input type="text" name="card_name" placeholder="John Doe">
-            <label>Expiry Date:</label>
-            <input type="text" name="expiry" placeholder="MM/YY">
-            <label>CVV:</label>
-            <input type="text" name="cvv" placeholder="123">
+        <div class="checkout-form">
+            <h2>Checkout</h2>
+            <form method="POST" action="checkout.php">
+                <label>Address:</label>
+                <textarea name="address" required></textarea>
+                <label>Payment Method:</label>
+                <select name="payment_method" id="payment_method" onchange="toggleCardDetails()" required>
+                    <option value="COD">Cash on Delivery</option>
+                    <option value="Card">Card Payment</option>
+                </select>
+                <div class="card-details" id="card-details">
+                    <label>Card Number:</label>
+                    <input type="text" name="card_number" maxlength="16" oninput="validateCardDetails(this, 'card_number')">
+                    <label>Expiry Date (MM/YY):</label>
+                    <input type="text" name="expiry_date" placeholder="MM/YY" maxlength="5" oninput="formatExpiryDate(this)">
+                    <label>CVV:</label>
+                    <input type="text" name="cvv" maxlength="3" oninput="validateCardDetails(this, 'cvv')">
+                </div>
+                <button type="submit" class="btn">Place Order</button>
+            </form>
         </div>
-
-        <button type="submit">Place Order</button>
-    </form>
-</div>
-
-<script>
-    function toggleCardDetails(show) {
-        const cardDetails = document.querySelector('.card-details');
-        if (show) {
-            cardDetails.style.display = "block";
-        } else {
-            cardDetails.style.display = "none";
-        }
-    }
-</script>
-
+    </div>
 </body>
 </html>

@@ -21,7 +21,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Fetch all books from the database
-$sql = "SELECT * FROM books";
+$sql = "SELECT * FROM books WHERE status = 'Available'";
 $result = $conn->query($sql);
 $cartItems = [];
 
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['book_id'])) {
     if ($checkCartResult->num_rows == 0) { // Only insert if book is not already in the cart
         $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
         if ($conn->query($sql) === TRUE) {
-            $alertMessage = 'Book added to cart!';
+            
             $cartItems[] = $book_id;
         } else {
             $alertMessage = 'Error: ' . $conn->error;
@@ -156,7 +156,7 @@ $conn->close();
         <a href="buy_books.php">Buy Books</a>
         <a href="sell_books.php">Sell Books</a>
         <a href="cart.php">Cart</a>
-        <a href="orders.php">Orders</a>
+        <a href="order_history.php">Orders</a>
         <a href="profile.php">Profile</a>
     </div>
     <a href="logout.php" class="logout">Logout</a>

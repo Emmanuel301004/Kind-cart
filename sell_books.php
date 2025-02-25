@@ -12,6 +12,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Ensure the 'status' column exists in the books table
+$conn->query("ALTER TABLE books ADD COLUMN status ENUM('Available', 'Sold', 'Reserved') NOT NULL DEFAULT 'Available'");
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.html");
@@ -30,17 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $book_condition = $_POST['book_condition'];
     $price_type = $_POST['price_type'];
     $price = $price_type == 'paid' ? $_POST['price'] : 0; // If free, price is 0
+    $status = 'Available'; // Default status
 
     // Validate price for "Paid" option
     if ($price_type == 'paid' && (!is_numeric($price) || $price <= 0)) {
         $alertMessage = "Invalid price! Please enter a valid amount greater than 0.";
     } else {
         // Generate a unique book_id
-$book_id = 'BOOK-' . uniqid();
+        $book_id = 'BOOK-' . uniqid();
 
-$sql = "INSERT INTO books (book_id, title, owner_name, contact, course, semester, book_condition, price, user_id) 
-        VALUES ('$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id')";
-
+        $sql = "INSERT INTO books (book_id, title, owner_name, contact, course, semester, book_condition, price, user_id, status) 
+                VALUES ('$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id', '$status')";
 
         if ($conn->query($sql) === TRUE) {
             $alertMessage = "Book listed successfully!";
@@ -52,7 +55,6 @@ $sql = "INSERT INTO books (book_id, title, owner_name, contact, course, semester
 
 $conn->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -156,7 +158,7 @@ $conn->close();
         <a href="buy_books.php">Buy Books</a>
         <a href="sell_books.php">Sell Books</a>
         <a href="cart.php">Cart</a>
-        <a href="orders.php">Orders</a>
+        <a href="orders.php">order_history.php</a>
         <a href="profile.php">Profile</a>
     </div>
     <a href="logout.php" class="logout">Logout</a>

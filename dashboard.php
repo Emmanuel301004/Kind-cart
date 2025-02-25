@@ -156,7 +156,7 @@ if (!isset($_SESSION['user_id'])) {
         <a href="dashboard.php">Home</a>
         <a href="buy_books.php">Buy Books</a>
         <a href="sell_books.php">Sell Books</a>
-        <a href="orders.php">Orders</a>
+        <a href="order_history.php">Orders</a>
     </div>
     <div class="nav-icons">
         <a href="cart.php"><i class="fas fa-shopping-cart"></i> cart</a>

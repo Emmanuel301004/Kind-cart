@@ -142,7 +142,7 @@ $stmt->close();
         <a href="buy_books.php">Buy Books</a>
         <a href="sell_books.php">Sell Books</a>
         <a href="cart.php">Cart</a>
-        <a href="orders.php">Orders</a>
+        <a href="order_history.php">Orders</a>
         <a href="profile.php">Profile</a>
     </div>
     <a href="logout.php" class="logout">Logout</a>
