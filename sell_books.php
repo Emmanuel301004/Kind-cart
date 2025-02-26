@@ -61,14 +61,15 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sell Books</title>
-    <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f9fafb;
-            margin: 0;
-            padding: 0;
-        }
+        /* Global Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa; /* Light Gray Background */
+    
+    height: 100vh;
+    margin: 0;
+}
 
         .navbar {
             display: flex;
@@ -99,43 +100,130 @@ $conn->close();
             text-transform: uppercase;
         }
 
-        .sell-form {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
 
-        .sell-form h1 {
-            text-align: center;
-            color: #4CAF50;
-        }
+/* Form Container */
+.sell-form {
+    width: 45vw;
+    background: #ffffff;
+    padding: 25px;
+    
+    
+    
+    height: 89vh;
+}
 
-        .sell-form label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-        }
+/* Form Title */
+.sell-form h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+}
 
-        .sell-form input, 
-        .sell-form select, 
-        .sell-form button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+/* Labels */
+.sell-form label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    text-align: left;
+    margin-bottom: 6px;
+}
 
-        .sell-form button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+/* Input & Select Fields */
+.sell-form input, 
+.sell-form select {
+    width: 80%;
+    padding: 12px;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fafafa;
+    transition: all 0.3s ease;
+}
+
+
+/* Price Type - Aligning Radio Buttons */
+.price-type-container {
+    display: flex;
+    
+    
+    margin: 15px 3P;
+}
+
+.price-type-container label {
+    display: flex;
+    
+    
+    cursor: pointer;
+}
+
+/* Styled Radio Buttons */
+.sell-form input[type="radio"] {
+    accent-color: #2c3e50;
+    transform: scale(1.2);
+}
+
+/* Submit Button */
+.sell-form button {
+    width: 50%;
+    padding: 12px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Button Hover Effect */
+.sell-form button:hover {
+    background: #1a252f;
+    transform: scale(1.02);
+}
+/* Price Type - Aligning Radio Buttons Properly */
+.price-type-container {
+    display: flex;
+    
+    gap: -50px; /* Adjust spacing between radio buttons */
+    margin-bottom: 15px;
+    
+}
+
+.price-type-container label {
+    display: flex;
+    
+    gap: 2px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0; /* Remove extra margin */
+}
+
+/* Styled Radio Buttons */
+.sell-form input[type="radio"] {
+    accent-color: #2c3e50;
+    transform: scale(1.1);
+    margin-right: 1px; /* Reduce spacing */
+}
+
+#price-free{
+    margin-right: 10px; /* Add spacing */
+}
+/* Responsive Design */
+@media (max-width: 600px) {
+    .sell-form {
+        width: 90%;
+        padding: 20px;
+    }
+}
+
     </style>
+<link rel="stylesheet" href="style.css">
     <script>
         function togglePriceField() {
             const priceType = document.querySelector('input[name="price_type"]:checked').value;
@@ -152,13 +240,14 @@ $conn->close();
     </script>
 </head>
 <body>
+    
 <div class="navbar">
     <div class="nav-links">
         <a href="dashboard.php">Home</a>
         <a href="buy_books.php">Buy Books</a>
         <a href="sell_books.php">Sell Books</a>
         <a href="cart.php">Cart</a>
-        <a href="orders.php">order_history.php</a>
+        <a href="order_history.php">Orders</a>
         <a href="profile.php">Profile</a>
     </div>
     <a href="logout.php" class="logout">Logout</a>
@@ -177,10 +266,26 @@ $conn->close();
         <input type="text" name="contact" id="contact" required>
 
         <label for="course">Course:</label>
-        <input type="text" name="course" id="course" required>
-
+        <select name="course" id="course" required>
+            <option value="BSc CSMM">BSc CSMM</option>
+            <option value="BCA">BCA</option>
+            <option value="BBA">BBA</option>
+            <option value="BCom">BCom</option>
+            <option value="BA Journalism">BA Journalism</option>
+            <option value="BSc Biotechnology">BSc Biotechnology</option>
+            <option value="MBA">MBA</option>
+            <option value="MCA">MCA</option>
+            <option value="MSc Data Science">MSc Data Science</option>
+        </select>
         <label for="semester">Semester:</label>
-        <input type="number" name="semester" id="semester" min="1" max="8" required>
+        <select name="semester" id="semester" required>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
 
         <label for="book_condition">Condition of the Book:</label>
         <select name="book_condition" id="book_condition" required>
@@ -191,7 +296,7 @@ $conn->close();
         </select>
 
         <label>Price Type:</label>
-        <div>
+        <div class="price-type-container">
             <input type="radio" name="price_type" value="free" id="price_free" onclick="togglePriceField()" required>
             <label for="price_free">Free</label>
             <input type="radio" name="price_type" value="paid" id="price_paid" onclick="togglePriceField()">
