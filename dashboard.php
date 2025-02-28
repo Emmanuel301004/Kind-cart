@@ -71,7 +71,7 @@ $recentBooks = $conn->query($recentBooksQuery);
         .nav-links a {
             color: white;
             text-decoration: none;
-            font-size: 1rem;
+            font-size: 1.3rem;
         }
         .nav-links a:hover {
             color: #c8e6c9;

@@ -31,48 +31,73 @@ $stmt->close();
     <title>Profile</title>
     <style>
         body {
-            background-color: #f8f9fa;
-            color: white;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            color: #333;
         }
-
-        /* Navbar */
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #2c3e50;
+            background: #2e7d32;
             padding: 15px 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar a {
-            color: #ecf0f1;
-            text-decoration: none;
-            margin-right: 15px;
-            font-size: 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .navbar a:hover {
-            color: #bdc3c7;
-        }
-
-        .navbar .logout {
-            background-color: #e74c3c;
             color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            font-size: 1rem;
-            text-transform: uppercase;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-sizing: border-box;
         }
-
-        .navbar .logout:hover {
-            background-color: #c0392b;
+        .navbar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
         }
-
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.3rem;
+        }
+        .nav-links a:hover {
+            color: #c8e6c9;
+        }
+        .profile-dropdown {
+            position: relative;
+        }
+        .profile-dropdown a {
+            color: white;
+            text-decoration: none;
+        }
+        .profile-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            min-width: 150px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+        .profile-dropdown-content a {
+            color: black;
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+        }
+        .profile-dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .profile-dropdown:hover .profile-dropdown-content {
+            display: block;
+        }
+       
         .profile-container {
             margin: 50px auto;
             padding: 20px 40px;
@@ -137,16 +162,23 @@ $stmt->close();
 </head>
 <body>
 <div class="navbar">
-    <div class="nav-links">
-        <a href="dashboard.php">Home</a>
-        <a href="buy_books.php">Buy Books</a>
-        <a href="sell_books.php">Sell Books</a>
-        <a href="cart.php">Cart</a>
-        <a href="order_history.php">Orders</a>
-        <a href="profile.php">Profile</a>
+        <a href="dashboard.php" class="logo">📚 Kind Kart</a>
+        <div class="nav-links">
+            <a href="dashboard.php">Home</a>
+            <a href="buy_books.php">Buy Books</a>
+            <a href="sell_books.php">Sell Books</a>
+            <a href="order_history.php">Orders</a>
+            <a href="cart.php"><img src="cart.png" alt="Cart" style="width:20px; height:20px; vertical-align:middle;"> Cart</a>
+        </div>
+        <div class="profile-dropdown">
+            <a href="#"><img src="profile.png" alt="Profile"></a>
+            <div class="profile-dropdown-content">
+                <a href="profile.php">Settings</a>
+                <a href="logout.php">Logout</a>
+            </div>
+        </div>
     </div>
-    <a href="logout.php" class="logout">Logout</a>
-</div>
+
 
 <div class="profile-container">
     <h1>Your Profile</h1>

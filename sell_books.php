@@ -70,53 +70,95 @@ body {
     height: 100vh;
     margin: 0;
 }
-
-        .navbar {
+.navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #2c3e50;
+            background: #2e7d32;
             padding: 15px 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar a {
-            color: #ecf0f1;
-            text-decoration: none;
-            margin-right: 15px;
-            font-size: 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .navbar a:hover {
-            color: #bdc3c7;
-        }
-
-        .navbar .logout {
-            background-color: #e74c3c;
             color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            text-transform: uppercase;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-sizing: border-box;
         }
-
-
+        .navbar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.3rem;
+        }
+        .nav-links a:hover {
+            color: #c8e6c9;
+        }
+        .profile-dropdown {
+            position: relative;
+        }
+        .profile-dropdown a {
+            color: white;
+            text-decoration: none;
+        }
+        .profile-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            min-width: 150px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+        .profile-dropdown-content a {
+            color: black;
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+        }
+        .profile-dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .profile-dropdown:hover .profile-dropdown-content {
+            display: block;
+        }
+       
+        .profile-container {
+            margin: 50px auto;
+            padding: 20px 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
 /* Form Container */
+/* Sell Form Styling */
 .sell-form {
-    width: 45vw;
+    width: 50%;
     background: #ffffff;
     padding: 25px;
-    
-    
-    
-    height: 89vh;
+    margin: 100px auto; /* Centering & Spacing */
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    font-family: 'Poppins', sans-serif;
 }
 
-/* Form Title */
+/* Title */
 .sell-form h1 {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 600;
-    color: #333;
+    color: #2e7d32; /* Navbar Green */
+    text-align: center;
     margin-bottom: 20px;
 }
 
@@ -125,52 +167,56 @@ body {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: #555;
-    text-align: left;
+    color: #333;
     margin-bottom: 6px;
 }
 
-/* Input & Select Fields */
+/* Inputs & Select Fields */
 .sell-form input, 
 .sell-form select {
-    width: 80%;
+    width: 100%;
     padding: 12px;
-    margin-top: 6px;
-    margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
-    background: #fafafa;
+    background: #f9f9f9;
     transition: all 0.3s ease;
 }
 
+/* Focus effect */
+.sell-form input:focus, 
+.sell-form select:focus {
+    border-color: #2e7d32;
+    outline: none;
+    box-shadow: 0 0 5px rgba(46, 125, 50, 0.5);
+}
 
-/* Price Type - Aligning Radio Buttons */
+/* Price Type Radio */
 .price-type-container {
     display: flex;
-    
-    
-    margin: 15px 3P;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
-.price-type-container label {
-    display: flex;
-    
-    
-    cursor: pointer;
-}
-
-/* Styled Radio Buttons */
+/* Radio Button Styling */
 .sell-form input[type="radio"] {
-    accent-color: #2c3e50;
+    accent-color: #2e7d32;
     transform: scale(1.2);
+    margin-right: 5px;
+}
+/* Ensure it doesn't show any focus styles */
+.sell-form input[type="radio"]:focus,
+.sell-form input[type="radio"]:focus-visible {
+    outline: none;
+    box-shadow: none;
 }
 
 /* Submit Button */
 .sell-form button {
-    width: 50%;
+    width: 100%;
     padding: 12px;
-    background: #2c3e50;
+    background: #2e7d32; /* Same as Navbar */
     color: white;
     border: none;
     border-radius: 6px;
@@ -180,45 +226,16 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Button Hover Effect */
+/* Hover Effect */
 .sell-form button:hover {
-    background: #1a252f;
+    background: #1b5e20;
     transform: scale(1.02);
 }
-/* Price Type - Aligning Radio Buttons Properly */
-.price-type-container {
-    display: flex;
-    
-    gap: -50px; /* Adjust spacing between radio buttons */
-    margin-bottom: 15px;
-    
-}
 
-.price-type-container label {
-    display: flex;
-    
-    gap: 2px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    margin: 0; /* Remove extra margin */
-}
-
-/* Styled Radio Buttons */
-.sell-form input[type="radio"] {
-    accent-color: #2c3e50;
-    transform: scale(1.1);
-    margin-right: 1px; /* Reduce spacing */
-}
-
-#price-free{
-    margin-right: 10px; /* Add spacing */
-}
 /* Responsive Design */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .sell-form {
         width: 90%;
-        padding: 20px;
     }
 }
 
@@ -242,16 +259,22 @@ body {
 <body>
     
 <div class="navbar">
-    <div class="nav-links">
-        <a href="dashboard.php">Home</a>
-        <a href="buy_books.php">Buy Books</a>
-        <a href="sell_books.php">Sell Books</a>
-        <a href="cart.php">Cart</a>
-        <a href="order_history.php">Orders</a>
-        <a href="profile.php">Profile</a>
+        <a href="dashboard.php" class="logo">📚 Kind Kart</a>
+        <div class="nav-links">
+            <a href="dashboard.php">Home</a>
+            <a href="buy_books.php">Buy Books</a>
+            <a href="sell_books.php">Sell Books</a>
+            <a href="order_history.php">Orders</a>
+            <a href="cart.php"><img src="cart.png" alt="Cart" style="width:20px; height:20px; vertical-align:middle;"> Cart</a>
+        </div>
+        <div class="profile-dropdown">
+            <a href="#"><img src="profile.png" alt="Profile"></a>
+            <div class="profile-dropdown-content">
+                <a href="profile.php">Settings</a>
+                <a href="logout.php">Logout</a>
+            </div>
+        </div>
     </div>
-    <a href="logout.php" class="logout">Logout</a>
-</div>
 
 <div class="sell-form">
     <h1>Sell Your Books</h1>
