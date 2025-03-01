@@ -23,7 +23,18 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $alertMessage = ''; // Variable for alerts
-
+// Define onSuccess function before calling it
+function onSuccess() {
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastEl = document.getElementById('toastMessage');
+            if (toastEl) {
+                var toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            }
+        });
+    </script>";
+}
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $title = $_POST['title'];
     $owner_name = $_POST['owner_name'];
@@ -44,13 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $sql = "INSERT INTO books (book_id, title, owner_name, contact, course, semester, book_condition, price, user_id, status) 
                 VALUES ('$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id', '$status')";
+  if ($conn->query($sql) === TRUE) {
+    $alertMessage = "Book listed successfully!";
+    $alertType = "success";
+    onSuccess();
+} else {
+    $alertMessage = "Error: " . $conn->error;
+    $alertType = "danger";
+}
 
-        if ($conn->query($sql) === TRUE) {
-            $alertMessage = "Book listed successfully!";
-        } else {
-            $alertMessage = "Error: " . $conn->error;
-        }
-    }
+
+}
 }
 
 $conn->close();
@@ -61,6 +76,8 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sell Books</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         /* Global Styling */
 body {
@@ -194,17 +211,12 @@ body {
 /* Price Type Radio */
 .price-type-container {
     display: flex;
+    margin-top:15px;
     align-items: center;
     gap: 15px;
     margin-bottom: 15px;
 }
 
-/* Radio Button Styling */
-.sell-form input[type="radio"] {
-    accent-color: #2e7d32;
-    transform: scale(1.2);
-    margin-right: 5px;
-}
 /* Ensure it doesn't show any focus styles */
 .sell-form input[type="radio"]:focus,
 .sell-form input[type="radio"]:focus-visible {
@@ -239,7 +251,58 @@ body {
     }
 }
 
-    </style>
+/* Custom Radio Button Styling */
+.radio-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    margin-top:15px;
+    margin-bottom: 10px;
+}
+
+/* Hide default radio button */
+.radio-button input[type="radio"] {
+    display: none;
+}
+
+/* Custom radio circle */
+.radio {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #2e7d32; /* Green border */
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Inner circle when selected */
+.radio::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: #2e7d32; /* Green color */
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Show inner circle when checked */
+.radio-button input[type="radio"]:checked + .radio::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Change border color when selected */
+.radio-button input[type="radio"]:checked + .radio {
+    border-color: #1b5e20; /* Darker green */
+}    </style>
 <link rel="stylesheet" href="style.css">
     <script>
         function togglePriceField() {
@@ -275,6 +338,19 @@ body {
             </div>
         </div>
     </div>
+
+ <!-- toaster    -->
+ <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toastMessage" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Book listed successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 
 <div class="sell-form">
     <h1>Sell Your Books</h1>
@@ -318,13 +394,18 @@ body {
             <option value="Poor">Poor</option>
         </select>
 
-        <label>Price Type:</label>
-        <div class="price-type-container">
-            <input type="radio" name="price_type" value="free" id="price_free" onclick="togglePriceField()" required>
-            <label for="price_free">Free</label>
-            <input type="radio" name="price_type" value="paid" id="price_paid" onclick="togglePriceField()">
-            <label for="price_paid">Paid</label>
-        </div>
+        <div class="radio-button">
+  <input type="radio" id="paid" name="price_type" value="paid" onchange="togglePriceField()">
+  <label for="paid" class="radio"></label>
+  <span>Paid</span>
+</div>
+
+<div class="radio-button">
+  <input type="radio" id="free" name="price_type" value="free" onchange="togglePriceField()">
+  <label for="free" class="radio"></label>
+  <span>Free</span>
+</div>
+
 
         <label for="price">Price:</label>
         <input type="number" name="price" id="price" min="1" disabled>
@@ -332,12 +413,8 @@ body {
         <button type="submit">List Book</button>
     </form>
 </div>
+    
 
-<?php if (!empty($alertMessage)): ?>
-    <script>
-        alert("<?php echo $alertMessage; ?>");
-    </script>
-<?php endif; ?>
 
 </body>
 </html>
