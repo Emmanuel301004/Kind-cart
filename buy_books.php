@@ -19,6 +19,18 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$alertMessage = ''; // Variable for alerts
+function onSuccess() {
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastEl = document.getElementById('toastMessage');
+            if (toastEl) {
+                var toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            }
+        });
+    </script>";
+}
 
 // Fetch all books from the database
 $sql = "SELECT * FROM books WHERE status = 'Available'";
@@ -47,10 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['book_id'])) {
     if ($checkCartResult->num_rows == 0) { // Only insert if book is not already in the cart
         $sql = "INSERT INTO cart (user_id, book_id, quantity) VALUES ('$user_id', '$book_id', '$quantity')";
         if ($conn->query($sql) === TRUE) {
-            
+            $alertMessage = "Book added successfully!";
+            $alertType = "success";
+            onSuccess();   
             $cartItems[] = $book_id;
         } else {
             $alertMessage = 'Error: ' . $conn->error;
+            $alertType = "danger";
         }
     } else {
         $alertMessage = 'This book is already in your cart.';
@@ -65,6 +80,9 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buy Books</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -198,6 +216,19 @@ $conn->close();
         </div>
     </div>
 
+     <!-- toaster    -->
+ <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toastMessage" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Book added successfully! to cart
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+
 <!-- Book List -->
 <div class="book-list-container">
     <h1>Available Books for Sale</h1>
@@ -221,12 +252,6 @@ $conn->close();
     <?php endwhile; ?>
 </div>
 
-<!-- JavaScript for Alert Message -->
-<?php if (!empty($alertMessage)): ?>
-    <script>
-        alert("<?php echo $alertMessage; ?>");
-    </script>
-<?php endif; ?>
 
 </body>
 </html>
