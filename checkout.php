@@ -24,6 +24,13 @@ while ($cart = mysqli_fetch_assoc($cart_items)) {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $address = mysqli_real_escape_string($conn, $_POST['address']);
+    $custom_address = isset($_POST['custom_address']) ? mysqli_real_escape_string($conn, $_POST['custom_address']) : '';
+    
+    // Combine selected address with custom entrance if provided
+    if ($address === 'Other' && !empty($custom_address)) {
+        $address .= ' - ' . $custom_address;
+    }
+
     $payment_method = $_POST['payment_method'];
     $card_number = isset($_POST['card_number']) ? $_POST['card_number'] : null;
     $expiry_date = isset($_POST['expiry_date']) ? $_POST['expiry_date'] : null;
@@ -65,11 +72,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script>
         function toggleCardDetails() {
             let paymentMethod = document.getElementById('payment_method').value;
             let cardDetails = document.getElementById('card-details');
             cardDetails.style.display = paymentMethod === 'Card' ? 'block' : 'none';
+        }
+
+        function toggleCustomAddress() {
+            let addressSelect = document.getElementById('address');
+            let customAddressDiv = document.getElementById('custom-address');
+            let customAddressInput = document.getElementById('custom_address');
+            
+            customAddressDiv.style.display = addressSelect.value === 'Other' ? 'block' : 'none';
+            
+            if (addressSelect.value !== 'Other') {
+                customAddressInput.removeAttribute('required');
+            } else {
+                customAddressInput.setAttribute('required', 'required');
+            }
         }
 
         function validateCardDetails(input, type) {
@@ -100,66 +122,92 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: #f6f9fc;
+            background: linear-gradient(135deg, #f6f9fc 0%, #e9ecef 100%);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
         .checkout-container {
-            width: 60%;
+            width: 70%;
+            max-width: 1000px;
             background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             display: flex;
-            gap: 20px;
+            gap: 30px;
         }
         .cart-items {
             flex: 1;
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 25px;
+            border-radius: 10px;
         }
         .cart-items h3 {
-            font-size: 20px;
-            margin-bottom: 15px;
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .total-amount {
+            font-weight: 600;
+            font-size: 18px;
+            margin-top: 15px;
+            text-align: right;
+            color: #28a745;
         }
         .checkout-form {
             flex: 1;
         }
+        .checkout-form h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
         label {
             font-weight: 600;
             display: block;
-            margin-top: 12px;
+            margin-top: 15px;
+            color: #495057;
         }
         textarea, input, select {
             width: 100%;
             padding: 12px;
-            margin-top: 6px;
-            border: 2px solid #ddd;
+            margin-top: 8px;
+            border: 2px solid #ced4da;
             border-radius: 8px;
+            transition: border-color 0.3s ease;
         }
-        .card-details {
-            display: none;
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .card-details, .custom-address {
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
         }
         .btn {
             width: 100%;
-            padding: 14px;
-            background: rgb(8, 175, 44);
+            padding: 15px;
+            background: linear-gradient(to right, #28a745, #20c997);
             border: none;
             color: white;
             font-size: 18px;
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 25px;
+            transition: transform 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        #custom-address {
+            display: none;
         }
     </style>
 </head>
@@ -179,14 +227,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="checkout-form">
             <h2>Checkout</h2>
             <form method="POST" action="checkout.php">
-                <label>Address:</label>
-                <textarea name="address" required></textarea>
+                <label>Delivery Address:</label>
+                <select name="address" id="address" onchange="toggleCustomAddress()" required>
+                    <option value="">Select Address</option>
+                    <option value="Chapel">Chapel</option>
+                    <option value="Main Block">Main Block</option>
+                    <option value="Other">Other Address</option>
+                </select>
+                
+                <div id="custom-address" class="custom-address">
+                    <label>Enter Specific Entrance/Address:</label>
+                    <textarea name="custom_address" id="custom_address" placeholder="Enter your specific address or entrance details"></textarea>
+                </div>
+
                 <label>Payment Method:</label>
                 <select name="payment_method" id="payment_method" onchange="toggleCardDetails()" required>
                     <option value="COD">Cash on Delivery</option>
                     <option value="Card">Card Payment</option>
                 </select>
-                <div class="card-details" id="card-details">
+                <div class="card-details" id="card-details" style="display:none;">
                     <label>Card Number:</label>
                     <input type="text" name="card_number" maxlength="16" oninput="validateCardDetails(this, 'card_number')">
                     <label>Expiry Date (MM/YY):</label>

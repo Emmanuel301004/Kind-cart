@@ -27,6 +27,23 @@ $result = $conn->query($sql);
 // Fetch Recently Added Books (latest 4 entries)
 $recentBooksQuery = "SELECT * FROM books WHERE status = 'Available' ORDER BY created_at DESC LIMIT 7";
 $recentBooks = $conn->query($recentBooksQuery);
+// Function to get active users count
+function getActiveUsersCount($conn) {
+    $usersQuery = "SELECT COUNT(*) as active_users FROM users";
+    $usersResult = $conn->query($usersQuery);
+    return $usersResult->fetch_assoc()['active_users'];
+}
+
+// Function to get books exchanged count
+function getBooksExchangedCount($conn) {
+    $booksQuery = "SELECT COUNT(*) as books_exchanged FROM orders";
+    $booksResult = $conn->query($booksQuery);
+    return $booksResult->fetch_assoc()['books_exchanged'];
+}
+
+// Get the counts
+$activeUsersCount = getActiveUsersCount($conn);
+$booksExchangedCount = getBooksExchangedCount($conn);
 ?>
 
 <!DOCTYPE html>
@@ -454,37 +471,37 @@ $recentBooks = $conn->query($recentBooksQuery);
             window.requestAnimationFrame(step);
         }
 
-        // Function to check if element is in viewport
-        function isInViewport(element) {
-            const rect = element.getBoundingClientRect();
-            return (
-                rect.top >= 0 &&
-                rect.left >= 0 &&
-                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-            );
-        }
+// Function to check if element is in viewport
+function isInViewport(element) {
+    const rect = element.getBoundingClientRect();
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+}
 
-        // Start animation when scrolled into view
-        function handleScroll() {
-            const statisticsSection = document.querySelector('.statistics');
-            if (isInViewport(statisticsSection)) {
-                // Start animations
-                animateCounter('stat1', '15K', 2000); // 2000ms = 2 seconds duration
-                animateCounter('stat2', '50K', 2000);
-                animateCounter('stat3', '100', 2000);
-                animateCounter('stat4', '250', 2000);
-                
-                // Remove scroll listener once animated
-                window.removeEventListener('scroll', handleScroll);
-            }
-        }
-
+// Start animation when scrolled into view
+function handleScroll() {
+    const statisticsSection = document.querySelector('.statistics');
+    if (isInViewport(statisticsSection)) {
+        // Start animations with actual counts from PHP
+        animateCounter('stat1', '<?php echo $activeUsersCount; ?>', 2000);
+        animateCounter('stat2', '<?php echo $booksExchangedCount; ?>', 2000);
+        animateCounter('stat3', '2', 2000);
+        animateCounter('stat4', '10', 2000);
+        
+        // Remove scroll listener once animated
+        window.removeEventListener('scroll', handleScroll);
+    }
+}
         // Add scroll event listener
         window.addEventListener('scroll', handleScroll);
         
         // Also check once on page load (in case statistics are already in view)
         document.addEventListener('DOMContentLoaded', handleScroll);
+        
     </script>
 
 

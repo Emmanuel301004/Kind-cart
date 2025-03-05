@@ -44,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $book_condition = $_POST['book_condition'];
     $price_type = $_POST['price_type'];
     $price = $price_type == 'paid' ? $_POST['price'] : 0; // If free, price is 0
-    $status = 'Available'; // Default status
 
     // Validate price for "Paid" option
     if ($price_type == 'paid' && (!is_numeric($price) || $price <= 0)) {
@@ -54,18 +53,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $book_id = 'BOOK-' . uniqid();
 
         $sql = "INSERT INTO books (book_id, title, owner_name, contact, course, semester, book_condition, price, user_id, status) 
-                VALUES ('$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id', '$status')";
-  if ($conn->query($sql) === TRUE) {
-    $alertMessage = "Book listed successfully!";
-    $alertType = "success";
-    onSuccess();
-} else {
-    $alertMessage = "Error: " . $conn->error;
-    $alertType = "danger";
-}
-
-
-}
+                VALUES ('$book_id', '$title', '$owner_name', '$contact', '$course', '$semester', '$book_condition', '$price', '$user_id', 'Available')";
+        if ($conn->query($sql) === TRUE) {
+            $alertMessage = "Book listed successfully!";
+            $alertType = "success";
+            onSuccess();
+        } else {
+            $alertMessage = "Error: " . $conn->error;
+            $alertType = "danger";
+        }
+    }
 }
 
 $conn->close();
@@ -76,18 +73,32 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sell Books</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Global Styling */
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #f8f9fa; /* Light Gray Background */
-    
-    height: 100vh;
-    margin: 0;
-}
-.navbar {
+        :root {
+            --primary-green: #2e7d32;
+            --dark-green: #1b5e20;
+            --light-green: #c8e6c9;
+            --background-gray: #f8f9fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-gray);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -147,163 +158,95 @@ body {
         .profile-dropdown:hover .profile-dropdown-content {
             display: block;
         }
-       
-        .profile-container {
-            margin: 50px auto;
-            padding: 20px 40px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 600px;
+      
+        .sell-form-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            flex-grow: 1;
         }
-/* Form Container */
-/* Sell Form Styling */
-.sell-form {
-    width: 50%;
-    background: #ffffff;
-    padding: 25px;
-    margin: 100px auto; /* Centering & Spacing */
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    font-family: 'Poppins', sans-serif;
-}
 
-/* Title */
-.sell-form h1 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #2e7d32; /* Navbar Green */
-    text-align: center;
-    margin-bottom: 20px;
-}
+        .sell-form {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
 
-/* Labels */
-.sell-form label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 6px;
-}
+        .sell-form:hover {
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            transform: translateY(-5px);
+        }
 
-/* Inputs & Select Fields */
-.sell-form input, 
-.sell-form select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    background: #f9f9f9;
-    transition: all 0.3s ease;
-}
+        .sell-form h1 {
+            color: var(--primary-green);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
 
-/* Focus effect */
-.sell-form input:focus, 
-.sell-form select:focus {
-    border-color: #2e7d32;
-    outline: none;
-    box-shadow: 0 0 5px rgba(46, 125, 50, 0.5);
-}
+        .form-floating {
+            margin-bottom: 1rem;
+        }
 
-/* Price Type Radio */
-.price-type-container {
-    display: flex;
-    margin-top:15px;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
+        .form-floating input, 
+        .form-floating select {
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
 
-/* Ensure it doesn't show any focus styles */
-.sell-form input[type="radio"]:focus,
-.sell-form input[type="radio"]:focus-visible {
-    outline: none;
-    box-shadow: none;
-}
+        .form-floating input:focus, 
+        .form-floating select:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+        }
 
-/* Submit Button */
-.sell-form button {
-    width: 100%;
-    padding: 12px;
-    background: #2e7d32; /* Same as Navbar */
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
+        .form-floating label {
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
 
-/* Hover Effect */
-.sell-form button:hover {
-    background: #1b5e20;
-    transform: scale(1.02);
-}
+        .price-type-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .sell-form {
-        width: 90%;
-    }
-}
+        .radio-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-/* Custom Radio Button Styling */
-.radio-button {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
-    cursor: pointer;
-    margin-top:15px;
-    margin-bottom: 10px;
-}
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-green);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
 
-/* Hide default radio button */
-.radio-button input[type="radio"] {
-    display: none;
-}
+        .btn-submit:hover {
+            background-color: var(--dark-green);
+            transform: scale(1.02);
+        }
 
-/* Custom radio circle */
-.radio {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #2e7d32; /* Green border */
-    border-radius: 50%;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-
-/* Inner circle when selected */
-.radio::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background-color: #2e7d32; /* Green color */
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    transition: all 0.2s ease-in-out;
-}
-
-/* Show inner circle when checked */
-.radio-button input[type="radio"]:checked + .radio::before {
-    transform: translate(-50%, -50%) scale(1);
-}
-
-/* Change border color when selected */
-.radio-button input[type="radio"]:checked + .radio {
-    border-color: #1b5e20; /* Darker green */
-}    </style>
-<link rel="stylesheet" href="style.css">
+        @media (max-width: 768px) {
+            .sell-form {
+                padding: 1.5rem;
+                max-width: 95%;
+            }
+        }
+    </style>
     <script>
         function togglePriceField() {
             const priceType = document.querySelector('input[name="price_type"]:checked').value;
@@ -320,101 +263,115 @@ body {
     </script>
 </head>
 <body>
-    
+
 <div class="navbar">
-        <a href="dashboard.php" class="logo">📚 Kind Kart</a>
-        <div class="nav-links">
-            <a href="dashboard.php">Home</a>
-            <a href="buy_books.php">Buy Books</a>
-            <a href="sell_books.php">Sell Books</a>
-            <a href="order_history.php">Orders</a>
-            <a href="cart.php"><img src="cart.png" alt="Cart" style="width:20px; height:20px; vertical-align:middle;"> Cart</a>
+    <a href="dashboard.php" class="logo">📚 Kind Kart</a>
+    <div class="nav-links">
+        <a href="dashboard.php">Home</a>
+        <a href="buy_books.php">Buy Books</a>
+        <a href="sell_books.php">Sell Books</a>
+        <a href="order_history.php">Orders</a>
+        <a href="cart.php"><img src="cart.png" alt="Cart" style="width:20px; height:20px; vertical-align:middle;"> Cart</a>
+    </div>
+    <div class="profile-dropdown">
+        <a href="#"><img src="profile.png" alt="Profile"></a>
+        <div class="profile-dropdown-content">
+            <a href="profile.php">Settings</a>
+            <a href="logout.php">Logout</a>
         </div>
-        <div class="profile-dropdown">
-            <a href="#"><img src="profile.png" alt="Profile"></a>
-            <div class="profile-dropdown-content">
-                <a href="profile.php">Settings</a>
-                <a href="logout.php">Logout</a>
-            </div>
+    </div>
+</div>
+
+    <div class="sell-form-container">
+        <div class="sell-form">
+            <h1>Sell Your Books</h1>
+            <form method="POST">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="title" name="title" placeholder="Book Title" required>
+                    <label for="title">Book Title</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="owner_name" name="owner_name" placeholder="Your Name" required>
+                    <label for="owner_name">Your Name</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="tel" class="form-control" id="contact" name="contact" placeholder="Contact Number" required>
+                    <label for="contact">Contact Number</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <select class="form-select" id="course" name="course" required>
+                        <option value="">Select Course</option>
+                        <option value="BSc CSMM">BSc CSMM</option>
+                        <option value="BCA">BCA</option>
+                        <option value="BBA">BBA</option>
+                        <option value="BCom">BCom</option>
+                        <option value="BA Journalism">BA Journalism</option>
+                        <option value="BSc Biotechnology">BSc Biotechnology</option>
+                        <option value="MBA">MBA</option>
+                        <option value="MCA">MCA</option>
+                        <option value="MSc Data Science">MSc Data Science</option>
+                    </select>
+                    <label for="course">Course</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <select class="form-select" id="semester" name="semester" required>
+                        <option value="">Select Semester</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                    </select>
+                    <label for="semester">Semester</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <select class="form-select" id="book_condition" name="book_condition" required>
+                        <option value="">Select Book Condition</option>
+                        <option value="New">New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                    <label for="book_condition">Book Condition</label>
+                </div>
+
+                <div class="price-type-container">
+                    <div class="radio-container">
+                        <input type="radio" class="btn-check" name="price_type" id="paid" value="paid" onchange="togglePriceField()" autocomplete="off">
+                        <label class="btn btn-outline-success" for="paid">Paid</label>
+                    </div>
+                    <div class="radio-container">
+                        <input type="radio" class="btn-check" name="price_type" id="free" value="free" onchange="togglePriceField()" autocomplete="off">
+                        <label class="btn btn-outline-success" for="free">Free</label>
+                    </div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input type="number" class="form-control" id="price" name="price" placeholder="Price" min="1" disabled>
+                    <label for="price">Price</label>
+                </div>
+
+                <button type="submit" class="btn btn-submit">List Book</button>
+            </form>
         </div>
     </div>
 
- <!-- toaster    -->
- <div class="toast-container position-fixed bottom-0 end-0 p-3">
+<!-- toaster -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="toastMessage" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body">
-                Book listed successfully!
+                Book added successfully! to cart
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
-
-
-<div class="sell-form">
-    <h1>Sell Your Books</h1>
-    <form method="POST">
-        <label for="title">Book Title:</label>
-        <input type="text" name="title" id="title" required>
-
-        <label for="owner_name">Your Name:</label>
-        <input type="text" name="owner_name" id="owner_name" required>
-
-        <label for="contact">Contact Number:</label>
-        <input type="text" name="contact" id="contact" required>
-
-        <label for="course">Course:</label>
-        <select name="course" id="course" required>
-            <option value="BSc CSMM">BSc CSMM</option>
-            <option value="BCA">BCA</option>
-            <option value="BBA">BBA</option>
-            <option value="BCom">BCom</option>
-            <option value="BA Journalism">BA Journalism</option>
-            <option value="BSc Biotechnology">BSc Biotechnology</option>
-            <option value="MBA">MBA</option>
-            <option value="MCA">MCA</option>
-            <option value="MSc Data Science">MSc Data Science</option>
-        </select>
-        <label for="semester">Semester:</label>
-        <select name="semester" id="semester" required>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-        </select>
-
-        <label for="book_condition">Condition of the Book:</label>
-        <select name="book_condition" id="book_condition" required>
-            <option value="New">New</option>
-            <option value="Good">Good</option>
-            <option value="Fair">Fair</option>
-            <option value="Poor">Poor</option>
-        </select>
-
-        <div class="radio-button">
-  <input type="radio" id="paid" name="price_type" value="paid" onchange="togglePriceField()">
-  <label for="paid" class="radio"></label>
-  <span>Paid</span>
-</div>
-
-<div class="radio-button">
-  <input type="radio" id="free" name="price_type" value="free" onchange="togglePriceField()">
-  <label for="free" class="radio"></label>
-  <span>Free</span>
-</div>
-
-
-        <label for="price">Price:</label>
-        <input type="number" name="price" id="price" min="1" disabled>
-
-        <button type="submit">List Book</button>
-    </form>
-</div>
-    
-
-
 </body>
 </html>
