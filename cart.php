@@ -41,6 +41,18 @@ if (isset($_GET['clear'])) {
 $cartSql = "SELECT books.book_id, books.title, books.price, cart.quantity FROM cart JOIN books ON cart.book_id = books.book_id WHERE cart.user_id = '$user_id'";
 $cartResult = $conn->query($cartSql);
 
+// Calculate total
+$total = 0;
+$items = [];
+if ($cartResult->num_rows > 0) {
+    while ($row = $cartResult->fetch_assoc()) {
+        $total += $row['price'] * $row['quantity'];
+        $items[] = $row;
+    }
+    // Reset result pointer
+    $cartResult->data_seek(0);
+}
+
 $conn->close();
 ?>
 
@@ -49,16 +61,19 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart</title>
+    <title>Cart | Kind Kart</title>
     <style>
-      body {
+        body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            background-color: #f8f9fa;
             margin: 0;
             padding: 0;
             color: #333;
+            line-height: 1.6;
         }
-      .navbar {
+        
+        /* Keeping navbar styles unchanged as requested */
+        .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -118,31 +133,173 @@ $conn->close();
         .profile-dropdown:hover .profile-dropdown-content {
             display: block;
         }
-       
-        h2 { color: #4CAF50; }
-        table { width: 100%; border-collapse: collapse; background: #fff; 
         
+        /* Improved container and content styles */
+        .container {
+            max-width: 1200px;
+            margin: 100px auto 40px;
+            padding: 0 20px;
         }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #4CAF50; color: white; }
-        .btn { padding: 5px 10px; color: white; text-decoration: none; border-radius: 4px; }
-        .remove { background: #e74c3c; }
-        .clear { background: #f39c12; }
-        .checkout { background: #3498db; }
-        .container{
-            margin-top:2.3%;
-            margin-left:0;
+        
+        .page-title {
+            color: #2e7d32;
+            margin-bottom: 30px;
+            font-size: 28px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        .cart-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .cart-table th {
+            background: #4CAF50;
+            color: white;
+            font-weight: 500;
+            text-align: left;
+            padding: 15px;
+        }
+        
+        .cart-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+        
+        .cart-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .cart-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .product-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .price {
+            color: #2e7d32;
+            font-weight: 500;
+        }
+        
+        .quantity {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+            text-align: center;
+        }
+        
+        .btn-remove {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-remove:hover {
+            background: #c0392b;
+        }
+        
+        .cart-summary {
+            background: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn-checkout {
+            background: #2e7d32;
+            color: white;
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+        
+        .btn-checkout:hover {
+            background: #1b5e20;
+        }
+        
+        .btn-clear {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-clear:hover {
+            background: #e67e22;
+        }
+        
+        .btn-continue {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-continue:hover {
+            background: #2980b9;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 60px 20px;
+            color: #777;
+        }
+        
+        .empty-cart-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        
+        .empty-cart-message {
+            font-size: 18px;
+            margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
     
-<div class="navbar">
+    <div class="navbar">
         <a href="dashboard.php" class="logo">📚 Kind Kart</a>
         <div class="nav-links">
             <a href="dashboard.php">Home</a>
             <a href="buy_books.php">Buy Books</a>
             <a href="sell_books.php">Sell Books</a>
+            <a href="my_listings.php">My Listings</a>
             <a href="order_history.php">Orders</a>
             <a href="cart.php"><img src="cart.png" alt="Cart" style="width:20px; height:20px; vertical-align:middle;"> Cart</a>
         </div>
@@ -154,32 +311,57 @@ $conn->close();
             </div>
         </div>
     </div>
+    
     <div class="container">
-    <h2>Your Shopping Cart</h2>
-    <?php if ($cartResult->num_rows == 0): ?>
-        <p>Your cart is empty.</p>
-    <?php else: ?>
-        <table>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Remove</th>
-            </tr>
-            <?php while ($row = $cartResult->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($row['title']); ?></td>
-                    <td>$<?php echo number_format($row['price'], 2); ?></td>
-                    <td><?php echo htmlspecialchars($row['quantity']); ?></td>
-                    <td><a href="cart.php?remove=<?php echo $row['book_id']; ?>" class="btn remove">Remove</a></td>
-                </tr>
-            <?php endwhile; ?>
-        </table>
-        <br>
-        <br>    
-        <a href="checkout.php" class="btn checkout">Proceed to Checkout</a> |
-        <a href="cart.php?clear=true" class="btn clear">Clear Cart</a>
+        <h1 class="page-title">Your Shopping Cart</h1>
+        
+        <?php if ($cartResult->num_rows == 0): ?>
+            <div class="cart-container">
+                <div class="empty-cart">
+                    <div class="empty-cart-icon">🛒</div>
+                    <div class="empty-cart-message">Your cart is empty</div>
+                    <a href="buy_books.php" class="btn btn-continue">Continue Shopping</a>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="cart-container">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $item): ?>
+                            <tr>
+                                <td class="product-name"><?php echo htmlspecialchars($item['title']); ?></td>
+                                <td class="price">$<?php echo number_format($item['price'], 2); ?></td>
+                                <td><span class="quantity"><?php echo htmlspecialchars($item['quantity']); ?></span></td>
+                                <td class="price">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                <td><a href="cart.php?remove=<?php echo $item['book_id']; ?>" class="btn btn-remove">Remove</a></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                
+                <div class="cart-summary">
+                    <div class="cart-total">
+                        <span>Total:</span>
+                        <span class="price">$<?php echo number_format($total, 2); ?></span>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="checkout.php" class="btn btn-checkout">Proceed to Checkout</a>
+                        <a href="cart.php?clear=true" class="btn btn-clear">Clear Cart</a>
+                        <a href="buy_books.php" class="btn btn-continue">Continue Shopping</a>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
-      <?php endif; ?>
 </body>
 </html>

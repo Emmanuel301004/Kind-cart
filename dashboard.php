@@ -366,6 +366,7 @@ $booksExchangedCount = getBooksExchangedCount($conn);
             <a href="dashboard.php">Home</a>
             <a href="buy_books.php">Buy Books</a>
             <a href="sell_books.php">Sell Books</a>
+            <a href="my_listings.php">My Listings</a>
             <a href="order_history.php">Orders</a>
             <a href="cart.php"><img src="cart.png" alt="Cart" style="width:20px; height:20px; vertical-align:middle;"> Cart</a>
         </div>
