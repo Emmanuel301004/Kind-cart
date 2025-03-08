@@ -27,7 +27,7 @@ if (isset($_POST['cancel_order'])) {
 }
 
 // Fetch user's orders with only reserved books
-$orders_query = "SELECT o.id, o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, o.address, 
+$orders_query = "SELECT o.id, o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, o.address,o.status,
                  DATE_ADD(o.order_date, INTERVAL 2 DAY) AS delivery_date 
                  FROM orders o
                  INNER JOIN books b ON o.book_title = b.title
@@ -332,7 +332,7 @@ $orders_result = mysqli_query($conn, $orders_query);
                                     <td class="price">$<?php echo number_format($order['book_price'], 2); ?></td>
                                     <td class="date"><?php echo date("d M Y", strtotime($order['order_date'])); ?></td>
                                     <td class="date"><?php echo date("d M Y", strtotime($order['delivery_date'])); ?></td>
-                                    <td><?php echo $status; ?></td>
+                                    <td><?php echo htmlspecialchars($order['status']); ?></td>
                                     <td>
                                         <?php if ($current_date < $delivery_date): ?>
                                             <form method="post">

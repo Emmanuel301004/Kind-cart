@@ -257,6 +257,7 @@ $conn->close();
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
             margin-bottom: 30px;
+            
         }
         
         .nav-tabs .nav-link {
@@ -475,8 +476,11 @@ $conn->close();
             padding: 15px 20px 20px;
         }
         
+        /* FIX: Updated dropdown styles to ensure visibility */
         .status-dropdown-menu {
             min-width: 200px;
+            position: absolute;
+            z-index: 1050; /* Higher z-index to appear above table */
         }
         
         .status-dropdown-item {
@@ -486,6 +490,11 @@ $conn->close();
         
         .status-dropdown-item:hover {
             background-color: var(--light-green);
+        }
+        
+        /* FIX: Make dropdown container position relative */
+        .dropdown {
+            position: relative;
         }
         
         .otp-form {
@@ -523,6 +532,13 @@ $conn->close();
             .order-table th, .order-table td {
                 padding: 10px 8px;
                 font-size: 14px;
+            }
+            
+            /* FIX: Ensure dropdown is visible on mobile */
+            .dropdown-menu {
+                position: absolute;
+                left: auto;
+                right: 0;
             }
         }
     </style>
@@ -693,160 +709,146 @@ $conn->close();
                     <h2>Orders Received</h2>
                     
                     <?php if ($orders_result->num_rows > 0): ?>
-                        <table class="order-table">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Book</th>
-                                    <th>Price</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php 
-                                // Rewind the result set
-                                $orders_result->data_seek(0);
-                                while ($order = $orders_result->fetch_assoc()): 
-                                    // If status field doesn't exist in your orders table, 
-                                    // use book_status as fallback (you'll need to modify your database structure)
-                                    $order_status = isset($order['status']) ? $order['status'] : ($order['book_status'] == 'Reserved' ? 'Processing' : 'Delivered');
-                                ?>
+                        <div class="table-responsive">
+                            <table class="order-table">
+                                <thead>
                                     <tr>
-                                        <td>#<?php echo $order['id']; ?></td>
-                                        <td><?php echo htmlspecialchars($order['title']); ?></td>
-                            
-                                        <td>$<?php echo number_format($order['book_price'], 2); ?></td>
-                                        <td><?php echo date("d M Y", strtotime($order['order_date'])); ?></td>
-                                        <td>
-                                            <?php 
-                                                $statusClass = '';
-                                                switch($order_status) {
-                                                    case 'Processing':
-                                                        $statusClass = 'status-processing';
-                                                        break;
-                                                    case 'Packing':
-                                                        $statusClass = 'status-packing';
-                                                        break;
-                                                    case 'On the way':
-                                                        $statusClass = 'status-ontheway';
-                                                        break;
-                                                    case 'Out for delivery':
-                                                        $statusClass = 'status-ontheway';
-                                                        break;
-                                                    case 'Delivered':
-                                                        $statusClass = 'status-delivered';
-                                                        break;
-                                                    default:
-                                                        $statusClass = 'status-processing';
-                                                }
-                                            ?>
-                                            <span class="status-badge <?php echo $statusClass; ?>"><?php echo $order_status; ?></span>
-                                        </td>
-                                        <td>
-                                            <?php if ($order['book_status'] != 'Sold'): ?>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        Update Status
-                                                    </button>
-                                                    <ul class="dropdown-menu status-dropdown-menu">
-                                                        <li>
-                                                            <form method="post">
-                                                                <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                                                <input type="hidden" name="order_status" value="Processing">
-                                                                <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">Processing</button>
-                                                            </form>
-                                                        </li>
-                                                        <li>
-                                                            <form method="post">
-                                                                <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                                                <input type="hidden" name="order_status" value="Packing">
-                                                                <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">Packing</button>
-                                                            </form>
-                                                        </li>
-                                                        <li>
-                                                            <form method="post">
-                                                                <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                                                <input type="hidden" name="order_status" value="On the way">
-                                                                <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">On the way</button>
-                                                            </form>
-                                                        </li>
-                                                        <li>
-                                                            <form method="post">
-                                                                <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                                                <input type="hidden" name="order_status" value="Out for delivery">
-                                                                <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">Out for delivery</button>
-                                                            </form>
-                                                        </li>
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li>
-                                                            <button class="dropdown-item status-dropdown-item" data-bs-toggle="modal" data-bs-target="#deliveryOtpModal<?php echo $order['id']; ?>">
-                                                                Confirm Delivery
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                
-                                                <!-- Delivery OTP Modal -->
-                                                <div class="modal fade" id="deliveryOtpModal<?php echo $order['id']; ?>" tabindex="-1" aria-labelledby="deliveryOtpModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title" id="deliveryOtpModalLabel">Confirm Delivery for Order #<?php echo $order['id']; ?></h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <p>To confirm the delivery, you need to request and verify the OTP from the buyer.</p>
-                                                                
-                                                                <form method="post" class="mb-3">
-                                                                    <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                                                    <button type="submit" name="send_delivery_otp" class="btn btn-primary">Generate OTP</button>
-                                                                </form>
-                                                                
-                                                                <div class="otp-form">
-                                                                    <form method="post">
-                                                                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                                                                        <div class="mb-3">
-                                                                            <label for="otp<?php echo $order['id']; ?>" class="form-label">Enter OTP from buyer</label>
-                                                                            <input type="text" class="form-control otp-input" id="otp<?php echo $order['id']; ?>" name="otp" maxlength="6" required>
-                                                                        </div>
-                                                                        <button type="submit" name="verify_delivery_otp" class="btn btn-success w-100">Verify & Confirm Delivery</button>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php else: ?>
-                                                <span class="text-muted">Completed</span>
-                                            <?php endif; ?>
-                                        </td>
+                                        <th>Order ID</th>
+                                        <th>Book</th>
+                                        <th>Price</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    <?php else: ?>
-                        <div class="no-data">
-                            <p>You haven't received any orders yet.</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
+                                </thead>
+                                <tbody>
+                                    <?php 
+                                    // Rewind the result set
+                                    $orders_result->data_seek(0);
+                                    while ($order = $orders_result->fetch_assoc()): 
+                                        // If status field doesn't exist in your orders table, 
+                                        // use book_status as fallback (you'll need to modify your database structure)
+                                        $order_status = isset($order['status']) ? $order['status'] : ($order['book_status'] == 'Reserved' ? 'Processing' : 'Delivered');
+                                    ?>
+                                        <tr>
+                                            <td>#<?php echo $order['id']; ?></td>
+                                            <td><?php echo htmlspecialchars($order['title']); ?></td>
+                                
+                                            <td>$<?php echo number_format($order['book_price'], 2); ?></td>
+                                            <td><?php echo date("d M Y", strtotime($order['order_date'])); ?></td>
+                                            <td>
+                                                <?php 
+                                                    $statusClass = '';
+                                                    switch($order_status) {
+                                                        case 'Processing':
+                                                            $statusClass = 'status-processing';
+                                                            break;
+                                                        case 'Packing':
+                                                            $statusClass = 'status-packing';
+                                                            break;
+                                                        case 'On the way':
+                                                            $statusClass = 'status-ontheway';
+                                                            break;
+                                                        case 'Out for delivery':
+                                                            $statusClass = 'status-ontheway';
+                                                            break;
+                                                        case 'Delivered':
+                                                            $statusClass = 'status-delivered';
+                                                            break;
+                                                        default:
+                                                            $statusClass = 'status-processing';
+                                                    }
+                                                ?>
+                                                <span class="status-badge <?php echo $statusClass; ?>"><?php echo $order_status; ?></span>
+                                            </td><td>
+    <?php if ($order['book_status'] != 'Sold' && $order_status != 'Delivered'): ?>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Update Status
+            </button>
+            <ul class="dropdown-menu status-dropdown-menu">
+                <li>
+                    <form method="post">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <input type="hidden" name="order_status" value="Processing">
+                        <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">Processing</button>
+                    </form>
+                </li>
+                <li>
+                    <form method="post">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <input type="hidden" name="order_status" value="Packing">
+                        <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">Packing</button>
+                    </form>
+                </li>
+                <li>
+                    <form method="post">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <input type="hidden" name="order_status" value="On the way">
+                        <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">On the way</button>
+                    </form>
+                </li>
+                <li>
+                    <form method="post">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <input type="hidden" name="order_status" value="Out for delivery">
+                        <button type="submit" name="update_order_status" class="dropdown-item status-dropdown-item">Out for delivery</button>
+                    </form>
+                </li>
+                <li>
+                    <form method="post">
+                        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <button type="submit" name="send_delivery_otp" class="dropdown-item status-dropdown-item">Generate Delivery OTP</button>
+                    </form>
+                </li>
+            </ul>
         </div>
-    </div>
-    
-    <script>
-        // Auto-dismiss alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                var alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
-                    var bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                });
-            }, 5000);
+        
+        <!-- OTP Verification Form -->
+        <?php if ($order_status == 'Out for delivery'): ?>
+        <div class="otp-form mt-2">
+            <form method="post" class="d-flex">
+                <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                <input type="text" name="otp" class="form-control form-control-sm otp-input me-2" placeholder="Enter OTP" required>
+                <button type="submit" name="verify_delivery_otp" class="btn btn-sm btn-success">Verify</button>
+            </form>
+        </div>
+        <?php endif; ?>
+    <?php else: ?>
+        <?php if ($order_status == 'Delivered'): ?>
+            <span class="badge bg-success">Completed</span>
+        <?php else: ?>
+            <span class="badge bg-secondary">No action needed</span>
+        <?php endif; ?>
+    <?php endif; ?>
+</td>
+</tr>
+<?php endwhile; ?>
+</tbody>
+</table>
+</div>
+<?php else: ?>
+<div class="no-data">
+    <p>You haven't received any orders yet.</p>
+</div>
+<?php endif; ?>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// Additional JavaScript if needed
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-close alerts after 5 seconds
+    setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
         });
-    </script>
+    }, 5000);
+});
+</script>
 </body>
 </html>
