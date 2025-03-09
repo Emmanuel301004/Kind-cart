@@ -229,12 +229,129 @@ $conn->close();
             background-color: #ccc;
             cursor: not-allowed;
         }
+            /* Mobile menu button */
+    .menu-toggle {
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 30px;
+        height: 21px;
+        cursor: pointer;
+    }
+    
+    .menu-toggle span {
+        display: block;
+        height: 3px;
+        width: 100%;
+        background-color: white;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+    }
+    
+    /* Responsive navbar adjustments */
+    @media (max-width: 768px) {
+        .navbar {
+            padding: 15px;
+        }
+        
+        .menu-toggle {
+            display: flex;
+            z-index: 1001;
+        }
+        
+        .menu-toggle.active span:nth-child(1) {
+            transform: translateY(9px) rotate(45deg);
+        }
+        
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .menu-toggle.active span:nth-child(3) {
+            transform: translateY(-9px) rotate(-45deg);
+        }
+        
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 250px;
+            height: 100vh;
+            background: #2e7d32;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 60px 0;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-links.active {
+            right: 0;
+        }
+        
+        .nav-links a {
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .nav-links.active a {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* Add animation delay for each nav item */
+        .nav-links a:nth-child(1) { transition-delay: 0.1s; }
+        .nav-links a:nth-child(2) { transition-delay: 0.2s; }
+        .nav-links a:nth-child(3) { transition-delay: 0.3s; }
+        .nav-links a:nth-child(4) { transition-delay: 0.4s; }
+        .nav-links a:nth-child(5) { transition-delay: 0.5s; }
+        .nav-links a:nth-child(6) { transition-delay: 0.6s; }
+        
+        /* Overlay when menu is open */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+    
+    /* Fix profile dropdown for mobile */
+    @media (max-width: 768px) {
+        .profile-dropdown-content {
+            right: 0;
+            top: 40px;
+        }
+    }
     </style>
 </head>
 <body>
+<!-- Update your navbar div to include the hamburger menu -->
 <div class="navbar">
     <a href="dashboard.php" class="logo">📚 Kind Kart</a>
-    <div class="nav-links">
+    
+    <div class="menu-toggle" id="mobile-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    
+    <div class="nav-links" id="nav-links">
         <a href="dashboard.php">Home</a>
         <a href="buy_books.php">Buy Books</a>
         <a href="sell_books.php">Sell Books</a>
@@ -242,6 +359,7 @@ $conn->close();
         <a href="order_history.php">Orders</a>
         <a href="cart.php"><img src="cart.png" alt="Cart" style="width:20px; height:20px; vertical-align:middle;"> Cart</a>
     </div>
+    
     <div class="profile-dropdown">
         <a href="#"><img src="profile.png" alt="Profile"></a>
         <div class="profile-dropdown-content">
@@ -250,6 +368,9 @@ $conn->close();
         </div>
     </div>
 </div>
+
+<!-- Add this overlay div right after the navbar -->
+<div class="menu-overlay" id="menu-overlay"></div>
 
 <!-- toaster -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -320,6 +441,48 @@ $conn->close();
         <p>No books available matching your filter criteria.</p>
     <?php endif; ?>
 </div>
-
+<script>// Add this to your existing JavaScript at the bottom of your file
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const navLinks = document.getElementById('nav-links');
+    const menuOverlay = document.getElementById('menu-overlay');
+    
+    // Toggle mobile menu
+    mobileMenu.addEventListener('click', function() {
+        this.classList.toggle('active');
+        navLinks.classList.toggle('active');
+        menuOverlay.classList.toggle('active');
+        document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+    });
+    
+    // Close menu when clicking on overlay
+    menuOverlay.addEventListener('click', function() {
+        mobileMenu.classList.remove('active');
+        navLinks.classList.remove('active');
+        menuOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    
+    // Close menu when clicking a link
+    const menuLinks = navLinks.querySelectorAll('a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            mobileMenu.classList.remove('active');
+            navLinks.classList.remove('active');
+            menuOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+    
+    // Close menu when window resizes to desktop size
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
+            mobileMenu.classList.remove('active');
+            navLinks.classList.remove('active');
+            menuOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+});</script>
 </body>
 </html>
