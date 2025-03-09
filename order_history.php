@@ -14,27 +14,33 @@ if (isset($_POST['cancel_order'])) {
     $order_id = $_POST['order_id'];
     $book_title = $_POST['book_title'];
 
-    // Update book status to "Available"
-    $update_book_query = "UPDATE books SET status = 'Available' WHERE title = '$book_title'";
-    mysqli_query($conn, $update_book_query);
+    // Sanitize inputs using prepared statements
+    // Update book status using prepared statement
+    $update_stmt = $conn->prepare("UPDATE books SET status = 'Available' WHERE title = ?");
+    $update_stmt->bind_param("s", $book_title);
+    $update_stmt->execute();
 
-    // Delete the order from the orders table
-    $delete_order_query = "DELETE FROM orders WHERE id = '$order_id'";
-    mysqli_query($conn, $delete_order_query);
+    // Delete order using prepared statement
+    $delete_stmt = $conn->prepare("DELETE FROM orders WHERE id = ?");
+    $delete_stmt->bind_param("s", $order_id);
+    $delete_stmt->execute();
 
     header("Location: order_history.php");
     exit();
 }
 
 // Fetch user's orders with only reserved books
-$orders_query = "SELECT o.id, o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, o.address,o.status,
+$orders_query = "SELECT o.id, o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, o.address, o.status,
                  DATE_ADD(o.order_date, INTERVAL 2 DAY) AS delivery_date 
                  FROM orders o
                  INNER JOIN books b ON o.book_title = b.title
-                 WHERE o.user_id='$user_id' AND b.status = 'Reserved'
+                 WHERE o.user_id=? AND b.status = 'Reserved'
                  ORDER BY o.order_date DESC";
 
-$orders_result = mysqli_query($conn, $orders_query);
+$stmt = $conn->prepare($orders_query);
+$stmt->bind_param("s", $user_id);
+$stmt->execute();
+$orders_result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -334,7 +340,7 @@ $orders_result = mysqli_query($conn, $orders_query);
                                     <td class="date"><?php echo date("d M Y", strtotime($order['delivery_date'])); ?></td>
                                     <td><?php echo htmlspecialchars($order['status']); ?></td>
                                     <td>
-                                        <?php if ($current_date < $delivery_date): ?>
+                                        <?php if ($current_date < $delivery_date && $order['status'] != 'Delivered'): ?>
                                             <form method="post">
                                                 <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
                                                 <input type="hidden" name="book_title" value="<?php echo $order['book_title']; ?>">
@@ -356,4 +362,4 @@ $orders_result = mysqli_query($conn, $orders_query);
         </div>
     </div>
 </body>
-</html>
+</html> 
