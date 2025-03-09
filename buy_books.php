@@ -302,7 +302,7 @@ $conn->close();
                 <div>
                     <p><strong>Title:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
                     <p><strong>Author:</strong> <?php echo htmlspecialchars($row['owner_name']); ?></p>
-                    <p><strong>Price:</strong> $<?php echo htmlspecialchars($row['price']); ?></p>
+                    <p><strong>Price:</strong> <?php echo htmlspecialchars($row['price']); ?></p>
                     <p><strong>Course:</strong> <?php echo htmlspecialchars($row['course']); ?></p>
                     <p><strong>Semester:</strong> <?php echo htmlspecialchars($row['semester']); ?></p>
                 </div>

@@ -329,7 +329,7 @@ $orders_result = mysqli_query($conn, $orders_query);
                                     <td class="book-title"><?php echo htmlspecialchars($order['book_title']); ?></td>
                                     <td><?php echo htmlspecialchars($order['owner_name']); ?></td>
                                     <td><?php echo htmlspecialchars($order['contact']); ?></td>
-                                    <td class="price">$<?php echo number_format($order['book_price'], 2); ?></td>
+                                    <td class="price"><?php echo number_format($order['book_price'], 2); ?></td>
                                     <td class="date"><?php echo date("d M Y", strtotime($order['order_date'])); ?></td>
                                     <td class="date"><?php echo date("d M Y", strtotime($order['delivery_date'])); ?></td>
                                     <td><?php echo htmlspecialchars($order['status']); ?></td>

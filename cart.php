@@ -339,9 +339,9 @@ $conn->close();
                         <?php foreach ($items as $item): ?>
                             <tr>
                                 <td class="product-name"><?php echo htmlspecialchars($item['title']); ?></td>
-                                <td class="price">$<?php echo number_format($item['price'], 2); ?></td>
+                                <td class="price"><?php echo number_format($item['price'], 2); ?></td>
                                 <td><span class="quantity"><?php echo htmlspecialchars($item['quantity']); ?></span></td>
-                                <td class="price">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
+                                <td class="price"><?php echo number_format($item['price'] * $item['quantity'], 2); ?></td>
                                 <td><a href="cart.php?remove=<?php echo $item['book_id']; ?>" class="btn btn-remove">Remove</a></td>
                             </tr>
                         <?php endforeach; ?>
@@ -351,7 +351,7 @@ $conn->close();
                 <div class="cart-summary">
                     <div class="cart-total">
                         <span>Total:</span>
-                        <span class="price">$<?php echo number_format($total, 2); ?></span>
+                        <span class="price"><?php echo number_format($total, 2); ?></span>
                     </div>
                     
                     <div class="action-buttons">

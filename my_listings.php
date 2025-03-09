@@ -616,7 +616,7 @@ $conn->close();
                                             <p><strong>Course:</strong> <?php echo htmlspecialchars($book['course']); ?></p>
                                             <p><strong>Semester:</strong> <?php echo htmlspecialchars($book['semester']); ?></p>
                                             <p><strong>Condition:</strong> <?php echo htmlspecialchars($book['book_condition']); ?></p>
-                                            <p><strong>Price:</strong> $<?php echo number_format($book['price'], 2); ?></p>
+                                            <p><strong>Price:</strong> <?php echo number_format($book['price'], 2); ?></p>
                                         </div>
                                         
                                         <div class="actions-container">
@@ -734,7 +734,7 @@ $conn->close();
                                             <td>#<?php echo $order['id']; ?></td>
                                             <td><?php echo htmlspecialchars($order['title']); ?></td>
                                 
-                                            <td>$<?php echo number_format($order['book_price'], 2); ?></td>
+                                            <td><?php echo number_format($order['book_price'], 2); ?></td>
                                             <td><?php echo date("d M Y", strtotime($order['order_date'])); ?></td>
                                             <td>
                                                 <?php 
