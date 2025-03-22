@@ -31,7 +31,7 @@ if (isset($_POST['cancel_order'])) {
 
 // Fetch user's orders with only reserved books
 $orders_query = "SELECT o.id, o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, o.address, o.status,
-                 DATE_ADD(o.order_date, INTERVAL 2 DAY) AS delivery_date 
+                 o.payment_method, DATE_ADD(o.order_date, INTERVAL 2 DAY) AS delivery_date 
                  FROM orders o
                  INNER JOIN books b ON o.book_title = b.title
                  WHERE o.user_id=? AND b.status = 'Reserved'
@@ -219,6 +219,24 @@ $orders_result = $stmt->get_result();
             color: #ff9800;
             font-weight: 600;
             background: rgba(255, 152, 0, 0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .paid {
+            color: #2e7d32;
+            font-weight: 600;
+            background: rgba(46, 125, 50, 0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .to-be-paid {
+            color: #e65100;
+            font-weight: 600;
+            background: rgba(230, 81, 0, 0.1);
             padding: 5px 10px;
             border-radius: 20px;
             display: inline-block;
@@ -443,6 +461,7 @@ $orders_result = $stmt->get_result();
                                 <th>Order Date</th>
                                 <th>Delivery Date</th>
                                 <th>Status</th>
+                                <th>Payment</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -451,15 +470,28 @@ $orders_result = $stmt->get_result();
                                 $delivery_date = new DateTime($order['delivery_date']);
                                 $current_date = new DateTime();
                                 $status = ($current_date >= $delivery_date) ? "<span class='delivered'>Delivered</span>" : "<span class='pending'>Pending</span>";
+                                
+                                // Payment status
+                                $payment_status = "";
+                                if ($order['payment_method'] == 'COD') {
+                                    if ($current_date >= $delivery_date && $order['status'] == 'Delivered') {
+                                        $payment_status = "<span class='paid'>Paid</span>";
+                                    } else {
+                                        $payment_status = "<span class='to-be-paid'>Amount to be paid: ₹" . number_format($order['book_price'], 2) . "</span>";
+                                    }
+                                } else {
+                                    $payment_status = "<span class='paid'>Paid Online</span>";
+                                }
                             ?>
                                 <tr>
                                     <td class="book-title"><?php echo htmlspecialchars($order['book_title']); ?></td>
                                     <td><?php echo htmlspecialchars($order['owner_name']); ?></td>
                                     <td><?php echo htmlspecialchars($order['contact']); ?></td>
-                                    <td class="price"><?php echo number_format($order['book_price'], 2); ?></td>
+                                    <td class="price">₹<?php echo number_format($order['book_price'], 2); ?></td>
                                     <td class="date"><?php echo date("d M Y", strtotime($order['order_date'])); ?></td>
                                     <td class="date"><?php echo date("d M Y", strtotime($order['delivery_date'])); ?></td>
-                                    <td><?php echo htmlspecialchars($order['status']); ?></td>
+                                    <td><?php echo $status; ?></td>
+                                    <td><?php echo $payment_status; ?></td>
                                     <td>
                                         <?php if ($current_date < $delivery_date && $order['status'] != 'Delivered'): ?>
                                             <form method="post">
@@ -526,4 +558,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });</script>
 </body>
-</html> 
+</html>

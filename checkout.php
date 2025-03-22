@@ -45,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "<script>console.log('OTP for card verification: $otp');</script>";
     }
 }
-
 // Function to process orders
 function processOrder($conn, $user_id, $cart_items, $post_data) {
     $address = mysqli_real_escape_string($conn, $post_data['address']);
@@ -56,7 +55,7 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
         $address .= ' - ' . $custom_address;
     }
 
-    $payment_method = $post_data['payment_method'];
+    $payment_method = mysqli_real_escape_string($conn, $post_data['payment_method']);
 
     // Insert order details into orders table and update book status to 'Reserved'
     mysqli_data_seek($cart_items, 0);
@@ -65,8 +64,8 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
         $quantity = $cart['quantity'];
 
         // Insert order details
-        $order_query = "INSERT INTO orders (user_id, book_id, order_date, address, book_title, owner_name, contact, course, semester, book_condition, book_price) 
-                        VALUES ('$user_id', '$book_id', NOW(), '$address', '{$cart['title']}', '{$cart['owner_name']}', '{$cart['contact']}', '{$cart['course']}', '{$cart['semester']}', '{$cart['book_condition']}', '{$cart['price']}')";
+        $order_query = "INSERT INTO orders (user_id, book_id, order_date, address, book_title, owner_name, contact, course, semester, book_condition, book_price, payment_method) 
+                        VALUES ('$user_id', '$book_id', NOW(), '$address', '{$cart['title']}', '{$cart['owner_name']}', '{$cart['contact']}', '{$cart['course']}', '{$cart['semester']}', '{$cart['book_condition']}', '{$cart['price']}', '$payment_method')";
         mysqli_query($conn, $order_query);
 
         // Update book status to 'Reserved'

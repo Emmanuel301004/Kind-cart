@@ -1142,17 +1142,29 @@ $booksExchangedCount = getBooksExchangedCount($conn);
         ?>
     </div>
     <a href="buy_books.php" class="more-btn">View All Books</a>
+</div><!-- Newsletter Section -->
+<div class="newsletter">
+    <h2>Stay Updated</h2>
+    <p>Subscribe to our newsletter to receive notifications about new books and special offers.</p>
+    <form class="newsletter-form" action="subscribe.php" method="POST">
+        <input type="email" name="email" placeholder="Enter your email" class="newsletter-input" required>
+        <button type="submit" class="newsletter-btn">Subscribe</button>
+    </form>
 </div>
-    <!-- Newsletter Section -->
-    <div class="newsletter">
-        <h2>Stay Updated</h2>
-        <p>Subscribe to our newsletter to receive notifications about new books and special offers.</p>
-        <form class="newsletter-form">
-            <input type="email" placeholder="Enter your email" class="newsletter-input" required>
-            <button type="submit" class="newsletter-btn">Subscribe</button>
-        </form>
-    </div>
-    
+<?php
+// Display subscription messages
+if (isset($_GET['subscription'])) {
+    echo '<div class="subscription-message">';
+    if ($_GET['subscription'] == 'success') {
+        echo '<p class="success-message">Thank you for subscribing! Please check your email for confirmation.</p>';
+    } elseif ($_GET['subscription'] == 'error') {
+        echo '<p class="error-message">Sorry, we couldn\'t process your subscription. Please try again later.</p>';
+    } elseif ($_GET['subscription'] == 'invalid') {
+        echo '<p class="error-message">Please enter a valid email address.</p>';
+    }
+    echo '</div>';
+}
+?>
     <!-- Footer -->
     <div class="footer">
         <div class="footer-content">
