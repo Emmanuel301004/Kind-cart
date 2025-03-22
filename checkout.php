@@ -2,6 +2,13 @@
 session_start();
 include 'db.php'; // Include your database connection file
 
+// Add PHPMailer requires at the top of your file
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Include PHPMailer autoloader - make sure this path matches where you installed it
+require 'vendor/autoload.php';
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -22,6 +29,65 @@ while ($cart = mysqli_fetch_assoc($cart_items)) {
     $total_amount += $cart['price'] * $cart['quantity'];
 }
 
+// New function to send OTP via email
+function sendOTPEmail($email, $otp) {
+    $mail = new PHPMailer(true);
+    
+    try {
+        //Server settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';        // Replace with your SMTP server
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'emman302004@gmail.com';  // Replace with your email
+        $mail->Password   = 'exvv ydkl meid mmxl';    // Replace with your password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+        
+        //Recipients
+        $mail->setFrom('emman302004@gmail.com', 'BookRent Store');
+        $mail->addAddress($email);
+        
+        //Content
+        $mail->isHTML(true);
+        $mail->Subject = 'Your OTP for BookRent Purchase';
+        $mail->Body    = '
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #4c8bf5;">BookRent Store</h1>
+                </div>
+                <div style="padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+                    <h2 style="margin-top: 0; color: #333;">Verification Required</h2>
+                    <p>Thank you for shopping with BookRent Store. Please use the following One-Time Password (OTP) to complete your purchase:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="display: inline-block; padding: 15px 40px; background-color: #4c8bf5; color: white; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 8px;">' . $otp . '</div>
+                    </div>
+                    <p>This OTP will expire in 5 minutes.</p>
+                    <p>If you didn\'t request this OTP, please ignore this email or contact our support team.</p>
+                </div>
+                <div style="margin-top: 20px; font-size: 12px; color: #777; text-align: center;">
+                    <p>This is an automated email, please do not reply.</p>
+                </div>
+            </div>
+        ';
+        
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+// Fetch user's email based on user_id
+function getUserEmail($conn, $user_id) {
+    $query = "SELECT email FROM users WHERE id = '$user_id'";
+    $result = mysqli_query($conn, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+        return $user['email'];
+    }
+    return null;
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['confirm_order']) && isset($_POST['payment_method']) && $_POST['payment_method'] == 'Card') {
         // For card payment, verify OTP
@@ -40,11 +106,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $otp = rand(100000, 999999);
         $_SESSION['otp'] = $otp;
         
-        // In a real scenario, you would send this OTP via SMS or email
-        // For this implementation, we'll just save it and print to console
+        // Get user's email
+        $userEmail = getUserEmail($conn, $user_id);
+        
+        if ($userEmail) {
+            // Send OTP via email
+            $emailSent = sendOTPEmail($userEmail, $otp);
+            
+            if ($emailSent) {
+                // Show success toast
+                echo "<script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        alert('OTP sent to your email successfully!');
+                    });
+                </script>";
+            } else {
+                // Email sending failed
+                echo "<script>alert('Failed to send OTP email. Please try again.');</script>";
+            }
+        } else {
+            // Email not found
+            echo "<script>alert('User email not found. Please update your profile.');</script>";
+        }
+        
+        // For demo purposes, also print to console
         echo "<script>console.log('OTP for card verification: $otp');</script>";
     }
 }
+
 // Function to process orders
 function processOrder($conn, $user_id, $cart_items, $post_data) {
     $address = mysqli_real_escape_string($conn, $post_data['address']);
@@ -90,6 +179,8 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
     <title>Checkout</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Add Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script>
         function toggleCardDetails() {
             let paymentMethod = document.getElementById('payment_method').value;
@@ -567,9 +658,43 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
         .resend-link:hover {
             text-decoration: underline;
         }
+        
+        /* Toast notification styles */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4c8bf5;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(-100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast i {
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
+    <!-- Toast notification container -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">OTP sent to your email successfully!</span>
+    </div>
+
     <div class="checkout-container">
         <div class="checkout-header">
             <h1>Complete Your Purchase</h1>
@@ -672,42 +797,39 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
                                 <div class="form-input-wrapper">
                                     <input type="text" name="cvv" id="cvv" class="form-control" placeholder="123" maxlength="3" oninput="validateCardDetails(this, 'cvv')">
                                     <div class="card-icon"><i class="fas fa-question-circle" title="3-digit security code on the back of your card"></i></div>
-                                </div>
-                            </div>
+                                    </div>
                         </div>
                         
-                        <button type="submit" id="submit-btn" name="place_order" class="btn">
+                        <button type="submit" id="submit-btn" class="btn" name="verify_payment">
                             <i class="fas fa-check-circle"></i> Place Order
                         </button>
                     </form>
-                <?php elseif (isset($_POST['verify_payment']) && $_POST['payment_method'] == 'Card'): ?>
-                    <!-- Step 2: OTP Verification for Card Payment -->
-                    <h2><i class="fas fa-shield-alt"></i> Verification</h2>
+                <?php else: ?>
+                    <!-- Step 2: OTP Verification Form (for Card Payment) -->
+                    <h2><i class="fas fa-shield-alt"></i> Verify Your Payment</h2>
                     <div class="otp-form">
+                        <p style="margin-bottom: 15px;">We've sent a verification code to your email. Please enter the code below to complete your purchase.</p>
+                        
                         <form method="POST" action="checkout.php">
-                            <p style="text-align:center; margin-bottom:20px;">
-                                <i class="fas fa-sms" style="font-size:40px; color:var(--primary-color); margin-bottom:15px;"></i><br>
-                                We've sent a one-time password (OTP) to your registered mobile number.<br>
-                                <span style="font-size:14px; color:#6c757d;">Please check the console for OTP (for demo purposes)</span>
-                            </p>
+                            <!-- Hidden fields to maintain state -->
+                            <input type="hidden" name="payment_method" value="Card">
+                            <input type="hidden" name="address" value="<?php echo htmlspecialchars($_POST['address']); ?>">
+                            <?php if (isset($_POST['custom_address'])): ?>
+                                <input type="hidden" name="custom_address" value="<?php echo htmlspecialchars($_POST['custom_address']); ?>">
+                            <?php endif; ?>
                             
                             <div class="form-group">
-                                <label for="otp">Enter 6-digit OTP:</label>
-                                <input type="text" name="otp" id="otp" class="form-control" placeholder="Enter OTP" required>
+                                <label for="otp">Enter OTP:</label>
+                                <input type="text" name="otp" id="otp" class="form-control" placeholder="Enter the 6-digit code" maxlength="6" required>
                             </div>
                             
                             <div class="timer">
-                                Time remaining: <span id="timer">05:00</span><br>
-                                <a href="#" class="resend-link">Resend OTP</a>
+                                <div>OTP expires in <span id="timer">05:00</span></div>
+                                <div>Didn't receive the code? <a href="#" class="resend-link" style="display: none;">Resend</a></div>
                             </div>
                             
-                            <!-- Pass along the form data from the previous step -->
-                            <input type="hidden" name="address" value="<?php echo htmlspecialchars($_POST['address']); ?>">
-                            <input type="hidden" name="custom_address" value="<?php echo isset($_POST['custom_address']) ? htmlspecialchars($_POST['custom_address']) : ''; ?>">
-                            <input type="hidden" name="payment_method" value="<?php echo htmlspecialchars($_POST['payment_method']); ?>">
-                            
-                            <button type="submit" name="confirm_order" class="btn btn-success">
-                                <i class="fas fa-check-circle"></i> Verify & Place Order
+                            <button type="submit" class="btn btn-success" name="confirm_order">
+                                <i class="fas fa-lock"></i> Complete Purchase
                             </button>
                         </form>
                     </div>
@@ -716,11 +838,21 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
         </div>
     </div>
     
+    <!-- Add Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Set the first payment option as selected by default
             if (document.querySelector('.payment-option')) {
                 document.querySelector('.payment-option').classList.add('selected');
+            }
+            
+            // Initialize address and card details toggles
+            if(document.getElementById('address')) {
+                toggleCustomAddress();
+            }
+            if(document.getElementById('payment_method')) {
+                toggleCardDetails();
             }
             
             // Start countdown timer for OTP

@@ -1,6 +1,13 @@
 <?php
 session_start();
+// At the top of your file, after session_start()
 
+// Add PHPMailer requires at the top of your file
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Include PHPMailer autoloader - make sure this path matches where you installed it
+require 'vendor/autoload.php';
 // Database connection
 $host = 'localhost';
 $db = 'user_management';
@@ -122,22 +129,82 @@ if (isset($_POST['verify_delivery_otp'])) {
     }
 }
 
-// Generate and send OTP for delivery confirmation
-if (isset($_POST['send_delivery_otp'])) {
-    $order_id = $_POST['order_id'];
-    
-    // Generate a random 6-digit OTP
-    $otp = mt_rand(100000, 999999);
-    
-    // Store OTP in session (In a real app, you would send this via SMS/email)
-    $_SESSION['order_'.$order_id.'_otp'] = $otp;
-      // For development purposes only - log to console instead of showing in UI
-      echo "<script>console.log('Development mode: OTP generated is " . $otp . "');</script>";
-    
-    $alertMessage = "OTP has been generated: $otp (In a real app, this would be sent to the buyer via SMS/email)";
-    $alertType = "info";
-}
-
+// Modify the "send_delivery_otp" section as follows:
+    if (isset($_POST['send_delivery_otp'])) {
+        $order_id = $_POST['order_id'];
+        
+        // Get buyer email from the orders table
+        $buyer_query = "SELECT o.*, u.email as buyer_email 
+                        FROM orders o 
+                        JOIN users u ON o.user_id = u.id 
+                        WHERE o.id = '$order_id'";
+        $buyer_result = $conn->query($buyer_query);
+        
+        if ($buyer_result && $buyer_result->num_rows > 0) {
+            $buyer_data = $buyer_result->fetch_assoc();
+            $buyer_email = $buyer_data['buyer_email'];
+            
+            // Generate a random 6-digit OTP
+            $otp = mt_rand(100000, 999999);
+            
+            // Store OTP in session
+            $_SESSION['order_'.$order_id.'_otp'] = $otp;
+            
+            // Send OTP via email
+            $mail = new PHPMailer(true);
+            
+            try {
+                // Server settings
+                $mail->isSMTP();
+                $mail->Host       = 'smtp.gmail.com';
+                $mail->SMTPAuth   = true;
+                $mail->Username   = 'emman302004@gmail.com';  // Your Gmail
+                $mail->Password   = 'exvv ydkl meid mmxl';    // Your app password
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port       = 587;
+                
+                // Recipients
+                $mail->setFrom('emman302004@gmail.com', 'Kind Kart');
+                $mail->addAddress($buyer_email);
+                
+                // Content
+                $mail->isHTML(true);
+                $mail->Subject = 'Your Kind Kart Order Delivery OTP';
+                $mail->Body    = '
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <h2 style="color: #2e7d32;">📚 Kind Kart</h2>
+                        </div>
+                        <p>Hello,</p>
+                        <p>Your order #'.$order_id.' is ready for delivery!</p>
+                        <p>Please provide the following OTP to the delivery person to confirm receipt:</p>
+                        <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 5px;">
+                            '.$otp.'
+                        </div>
+                        <p>This OTP is valid only for this delivery and will expire once used.</p>
+                        <p>Thank you for shopping with Kind Kart!</p>
+                    </div>
+                ';
+                
+                $mail->send();
+                
+                $alertMessage = "OTP has been sent to the buyer's email.";
+                $alertType = "success";
+                
+                // For development purposes - also log to console
+                echo "<script>console.log('Development mode: OTP generated is " . $otp . "');</script>";
+            } catch (Exception $e) {
+                $alertMessage = "Error sending OTP email: " . $mail->ErrorInfo;
+                $alertType = "danger";
+                
+                // For development purposes - log to console
+                echo "<script>console.log('Development mode: OTP generated is " . $otp . "');</script>";
+            }
+        } else {
+            $alertMessage = "Error: Could not find buyer information.";
+            $alertType = "danger";
+        }
+    }
 // Fetch user's books
 $books_query = "SELECT * FROM books WHERE user_id = '$user_id' ORDER BY status, title";
 $books_result = $conn->query($books_query);
