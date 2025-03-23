@@ -32,7 +32,7 @@ $stmt->close();
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f5f7fa;
             margin: 0;
             padding: 0;
             color: #333;
@@ -100,30 +100,55 @@ $stmt->close();
             display: block;
         }
        
-        /* Enhanced profile container */
+        /* Enhanced profile container - IMPROVED STYLING */
         .profile-container {
-            margin: 100px auto 50px;
+            margin: 120px auto 60px;
             padding: 40px;
             background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 600px;
-            transition: all 0.3s ease;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 92%;
+            max-width: 650px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(to right, #4CAF50, #2e7d32);
         }
 
         .profile-container:hover {
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+            transform: translateY(-5px);
         }
 
         h1 {
             font-size: 32px;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             color: #2e7d32;
             text-align: center;
             font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
+            position: relative;
             padding-bottom: 15px;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(to right, #4CAF50, #2e7d32);
+            border-radius: 3px;
         }
 
         .info {
@@ -137,196 +162,244 @@ $stmt->close();
         form {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
         form input {
-            padding: 12px 15px;
+            padding: 14px 18px;
             margin: 0;
             width: 100%;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+            border-radius: 10px;
+            border: 1.5px solid #e0e0e0;
             box-sizing: border-box;
             font-size: 16px;
-            transition: border 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
             background-color: #f9f9f9;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
         }
 
         form input:disabled {
-            background-color: #f0f0f0;
-            color: #777;
+            background-color: #f5f5f5;
+            color: #666;
             cursor: not-allowed;
+            border-color: #ddd;
         }
 
         form input:focus {
             outline: none;
             border-color: #4CAF50;
             box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            background-color: #fff;
         }
 
         .button-container {
             display: flex;
             justify-content: center;
-            margin-top: 25px;
+            margin-top: 35px;
+            gap: 15px;
         }
 
         button {
-            padding: 12px 25px;
+            padding: 14px 30px;
             font-size: 16px;
             font-weight: 600;
             border: none;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(to right, rgba(255,255,255,0.2), transparent);
+            transition: all 0.4s ease;
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        button:hover::after {
+            left: 100%;
         }
 
         #editBtn {
-            background-color: #2196F3;
+            background: linear-gradient(to right, #2196F3, #1976D2);
             color: white;
         }
 
         #saveBtn {
             display: none;
-            background-color: #4CAF50;
+            background: linear-gradient(to right, #4CAF50, #2e7d32);
             color: white;
         }
 
         #editBtn:hover {
-            background-color: #0d8bf2;
+            background: linear-gradient(to right, #1E88E5, #1565C0);
         }
 
         #saveBtn:hover {
-            background-color: #3d9140;
+            background: linear-gradient(to right, #43A047, #2E7D32);
         }
 
-        /* Form field styling */
+        /* Form field styling - IMPROVED */
         .form-group {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group:hover {
+            transform: translateX(5px);
         }
 
         .form-field-label {
             display: block;
             text-align: left;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: bold;
+            margin-bottom: 10px;
+            color: #444;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
         }
-            /* Mobile menu button */
-    .menu-toggle {
-        display: none;
-        flex-direction: column;
-        justify-content: space-between;
-        width: 30px;
-        height: 21px;
-        cursor: pointer;
-    }
-    
-    .menu-toggle span {
-        display: block;
-        height: 3px;
-        width: 100%;
-        background-color: white;
-        border-radius: 3px;
-        transition: all 0.3s ease;
-    }
-    
-    /* Responsive navbar adjustments */
-    @media (max-width: 768px) {
-        .navbar {
-            padding: 15px;
+
+        .form-group:hover .form-field-label {
+            color: #2e7d32;
         }
         
+        /* Mobile menu button - kept intact */
         .menu-toggle {
-            display: flex;
-            z-index: 1001;
-        }
-        
-        .menu-toggle.active span:nth-child(1) {
-            transform: translateY(9px) rotate(45deg);
-        }
-        
-        .menu-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
-        
-        .menu-toggle.active span:nth-child(3) {
-            transform: translateY(-9px) rotate(-45deg);
-        }
-        
-        .nav-links {
-            position: fixed;
-            top: 0;
-            right: -100%;
-            width: 250px;
-            height: 100vh;
-            background: #2e7d32;
+            display: none;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 25px;
-            transition: right 0.3s ease;
-            z-index: 1000;
-            padding: 60px 0;
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            cursor: pointer;
         }
         
-        .nav-links.active {
-            right: 0;
-        }
-        
-        .nav-links a {
-            opacity: 0;
-            transform: translateX(20px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        
-        .nav-links.active a {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        /* Add animation delay for each nav item */
-        .nav-links a:nth-child(1) { transition-delay: 0.1s; }
-        .nav-links a:nth-child(2) { transition-delay: 0.2s; }
-        .nav-links a:nth-child(3) { transition-delay: 0.3s; }
-        .nav-links a:nth-child(4) { transition-delay: 0.4s; }
-        .nav-links a:nth-child(5) { transition-delay: 0.5s; }
-        .nav-links a:nth-child(6) { transition-delay: 0.6s; }
-        
-        /* Overlay when menu is open */
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .menu-toggle span {
+            display: block;
+            height: 3px;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            background-color: white;
+            border-radius: 3px;
+            transition: all 0.3s ease;
         }
         
-        .menu-overlay.active {
-            opacity: 1;
-            visibility: visible;
+        /* Responsive navbar adjustments - kept intact */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px;
+            }
+            
+            .menu-toggle {
+                display: flex;
+                z-index: 1001;
+            }
+            
+            .menu-toggle.active span:nth-child(1) {
+                transform: translateY(9px) rotate(45deg);
+            }
+            
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .menu-toggle.active span:nth-child(3) {
+                transform: translateY(-9px) rotate(-45deg);
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 250px;
+                height: 100vh;
+                background: #2e7d32;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 25px;
+                transition: right 0.3s ease;
+                z-index: 1000;
+                padding: 60px 0;
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            }
+            
+            .nav-links.active {
+                right: 0;
+            }
+            
+            .nav-links a {
+                opacity: 0;
+                transform: translateX(20px);
+                transition: opacity 0.3s ease, transform 0.3s ease;
+            }
+            
+            .nav-links.active a {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            
+            /* Add animation delay for each nav item */
+            .nav-links a:nth-child(1) { transition-delay: 0.1s; }
+            .nav-links a:nth-child(2) { transition-delay: 0.2s; }
+            .nav-links a:nth-child(3) { transition-delay: 0.3s; }
+            .nav-links a:nth-child(4) { transition-delay: 0.4s; }
+            .nav-links a:nth-child(5) { transition-delay: 0.5s; }
+            .nav-links a:nth-child(6) { transition-delay: 0.6s; }
+            
+            /* Overlay when menu is open */
+            .menu-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+            
+            .menu-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Adjust profile container for mobile */
+            .profile-container {
+                margin: 100px auto 40px;
+                padding: 25px 20px;
+                width: 90%;
+            }
+
+            form input {
+                padding: 12px 15px;
+            }
+
+            button {
+                padding: 12px 25px;
+            }
         }
-    }
-    
-    /* Fix profile dropdown for mobile */
-    @media (max-width: 768px) {
-        .profile-dropdown-content {
-            right: 0;
-            top: 40px;
+        
+        /* Fix profile dropdown for mobile - kept intact */
+        @media (max-width: 768px) {
+            .profile-dropdown-content {
+                right: 0;
+                top: 40px;
+            }
         }
-    }
     </style>
 </head>
 <body>

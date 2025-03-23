@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->Host       = 'smtp.gmail.com';        // Replace with your SMTP server
             $mail->SMTPAuth   = true;
             $mail->Username   = 'emman302004@gmail.com';  // Replace with your email
-            $mail->Password   = 'exvv ydkl meid mmxl';           // Replace with your password
+            $mail->Password   = 'exvv ydkl meid mmxl';    // Replace with your password
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             
@@ -55,22 +55,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             $mail->send();
             
-            // Redirect back with success message
-            header("Location: index.php?subscription=success");
-            exit();
+            // Set success message in session and redirect to dashboard
+            session_start();
+            $_SESSION['alert_type'] = 'success';
+            $_SESSION['alert_message'] = 'You have successfully subscribed to our newsletter!';
+            
         } catch (Exception $e) {
-            // Redirect back with error message
-            header("Location: index.php?subscription=error&message=" . urlencode($mail->ErrorInfo));
-            exit();
+            // Set error message in session
+            session_start();
+            $_SESSION['alert_type'] = 'error';
+            $_SESSION['alert_message'] = 'Mailer Error: ' . $mail->ErrorInfo;
         }
     } else {
         // Invalid email
-        header("Location: index.php?subscription=invalid");
-        exit();
+        session_start();
+        $_SESSION['alert_type'] = 'error';
+        $_SESSION['alert_message'] = 'Invalid email address. Please try again.';
     }
 } else {
     // Not a POST request
-    header("Location: index.php");
-    exit();
+    session_start();
+    $_SESSION['alert_type'] = 'error';
+    $_SESSION['alert_message'] = 'Invalid request method.';
 }
+
+// Redirect back to dashboard
+header('Location: dashboard.php');
+exit;
 ?>

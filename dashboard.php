@@ -44,6 +44,16 @@ function getBooksExchangedCount($conn) {
 // Get the counts
 $activeUsersCount = getActiveUsersCount($conn);
 $booksExchangedCount = getBooksExchangedCount($conn);
+
+// Check if we have an alert message to display
+if (isset($_SESSION['alert_type']) && isset($_SESSION['alert_message'])) {
+    $alert_type = $_SESSION['alert_type'];
+    $alert_message = $_SESSION['alert_message'];
+    
+    // Clear the message from session so it doesn't show again on refresh
+    unset($_SESSION['alert_type']);
+    unset($_SESSION['alert_message']);
+}
 ?>
 
 <!DOCTYPE html>
@@ -988,6 +998,39 @@ $booksExchangedCount = getBooksExchangedCount($conn);
             top: 40px;
         }
     }
+    .toaster {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 4px;
+    color: white;
+    max-width: 350px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.toaster.success {
+    background-color: #4CAF50;
+}
+
+.toaster.error {
+    background-color: #F44336;
+}
+
+.toaster.info {
+    background-color: #2196F3;
+}
+
+.toaster.warning {
+    background-color: #FF9800;
+}
+
+.toaster.show {
+    opacity: 1;
+}
     </style>
 </head>
 <body>
@@ -1288,6 +1331,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+
     </script>
+   <!-- Add this script section -->
+<script>
+<?php if (isset($alert_type) && isset($alert_message)): ?>
+    // Display toaster message
+    window.onload = function() {
+        showToaster("<?php echo $alert_message; ?>", "<?php echo $alert_type; ?>");
+    }
+<?php endif; ?>
+
+function showToaster(message, type = 'info') {
+    // Create the toaster element
+    const toaster = document.createElement('div');
+    toaster.className = `toaster ${type}`;
+    toaster.textContent = message;
+    
+    // Add to container
+    const container = document.getElementById('toaster-container');
+    container.appendChild(toaster);
+    
+    // Show the toaster (wait a tiny bit for the DOM to update)
+    setTimeout(() => {
+        toaster.classList.add('show');
+    }, 10);
+    
+    // Hide and remove after 5 seconds
+    setTimeout(() => {
+        toaster.classList.remove('show');
+        setTimeout(() => {
+            container.removeChild(toaster);
+        }, 300);
+    }, 5000);
+}
+</script>
+<div id="toaster-container"></div>
 </body>
 </html>
