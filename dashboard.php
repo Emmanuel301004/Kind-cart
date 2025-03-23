@@ -1172,10 +1172,10 @@ if (isset($_GET['subscription'])) {
                 <h3>Kind Kart</h3>
                 <p>A student-run marketplace for affordable educational resources, promoting sustainability and academic success.</p>
                 <div class="footer-social">
-                    <a href="#" class="social-icon">f</a>
-                    <a href="#" class="social-icon">t</a>
-                    <a href="#" class="social-icon">in</a>
-                    <a href="#" class="social-icon">ig</a>
+                    <a href="https://www.facebook.com/profile.php?id=61550346894850" class="social-icon">f</a>
+                    <a href="https://www.threads.net/@emman_1023?xmt=AQGzVfvd3dczhXHktjr8jG17zlHDoni50y0IDACg-B7_fqA" class="social-icon">t</a>
+                    <a href="https://www.linkedin.com/in/emmanuel2305/" class="social-icon">in</a>
+                    <a href="https://www.instagram.com/emman_1023?igsh=MWQ5MXhyaTc3aXYxeQ==" class="social-icon">ig</a>
                 </div>
             </div>
             <div class="footer-column">

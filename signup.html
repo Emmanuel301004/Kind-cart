@@ -6,119 +6,235 @@
     <title>Unified Login System</title>
     <style>
         /* Google Font */
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
         }
-
+        
         body {
             display: flex;
             height: 100vh;
+            overflow: hidden;
         }
-
+        
         .left-container {
             width: 50%;
-            background: #A8D5BA;
+            background: linear-gradient(135deg, #68b2a0, #006d77);
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             color: white;
             text-align: center;
-            padding: 20px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
         }
-
+        
+        .left-container::before {
+            content: "";
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -250px;
+            left: -200px;
+        }
+        
+        .left-container::after {
+            content: "";
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            bottom: -200px;
+            right: -150px;
+        }
+        
         .right-container {
             width: 50%;
-            background: white;
+            background: #f8f9fa;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             text-align: center;
-            padding: 20px;
+            padding: 40px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.05);
         }
-
+        
         .form-container {
-            width: 300px;
+            width: 350px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
         }
-
+        
+        .logo {
+            margin-bottom: 40px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #006d77;
+        }
+        
         h1 {
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             font-size: 28px;
             font-weight: 600;
+            color: #2d3748;
         }
-
+        
+        .left-container h1 {
+            font-size: 36px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .left-container p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 80%;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+        
         h2 {
-            margin-bottom: 15px;
-            font-size: 22px;
+            margin-bottom: 25px;
+            font-size: 18px;
+            font-weight: 400;
+            color: #718096;
         }
-
+        
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
         label {
             display: block;
             text-align: left;
-            margin: 10px 0 5px;
+            margin-bottom: 8px;
             font-size: 14px;
+            color: #4a5568;
+            font-weight: 500;
         }
-
+        
         input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
             outline: none;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f7fafc;
         }
-
+        
+        input:focus {
+            border-color: #006d77;
+            box-shadow: 0 0 0 3px rgba(0, 109, 119, 0.1);
+            background: white;
+        }
+        
         button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: none;
-            border-radius: 5px;
-            background: #ff8c00;
+            border-radius: 8px;
+            background: #006d77;
             color: white;
             font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
             transition: 0.3s;
+            margin-top: 10px;
         }
-
+        
         button:hover {
-            background: #e07b00;
+            background: #005a64;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 109, 119, 0.2);
         }
-
+        
         a {
             display: block;
-            margin-top: 15px;
-            color: #ff8c00;
+            margin-top: 20px;
+            color: #006d77;
             text-decoration: none;
             font-size: 14px;
+            transition: 0.3s;
         }
-
+        
         a:hover {
-            text-decoration: underline;
+            color: #005a64;
+        }
+        
+        .book-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Responsive design for mobile devices */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .left-container, .right-container {
+                width: 100%;
+                height: 50%;
+            }
+            
+            .form-container {
+                width: 90%;
+                max-width: 350px;
+            }
+            
+            .left-container h1 {
+                font-size: 28px;
+            }
+            
+            .left-container p {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="left-container">
-        <h1>Welcome Back Lovely</h1>
-        <p>wanna sell and buy some books</p>
+        <div class="book-icon">📚</div>
+        <h1>Welcome Lovely</h1>
+        <p>Join our community to buy and sell amazing books. Your reading adventure starts here.</p>
     </div>
     <div class="right-container">
         <div class="form-container">
+            <div class="logo">Kind-Kart</div>
             <h1>Signup</h1>
+            <h2>Create your account</h2>
             <form id="signupForm" method="POST" action="signup.php">
-                <h2>Create Account</h2>
-                <label for="email">Email:</label>
-                <input type="email" id="signupEmail" name="email" required placeholder="Enter your email">
-
-                <label for="password">Password:</label>
-                <input type="password" id="signupPassword" name="password" required placeholder="Enter your password">
-
+                <div class="input-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="signupEmail" name="email" required placeholder="Enter your email">
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="signupPassword" name="password" required placeholder="Enter your password">
+                </div>
+                
                 <button type="submit">Sign Up</button>
             </form>
             <a href="index.html">Already have an account? Login here</a>

@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Show success toast
                 echo "<script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        alert('OTP sent to your email successfully!');
+                        
                     });
                 </script>";
             } else {
@@ -797,11 +797,12 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
                                 <div class="form-input-wrapper">
                                     <input type="text" name="cvv" id="cvv" class="form-control" placeholder="123" maxlength="3" oninput="validateCardDetails(this, 'cvv')">
                                     <div class="card-icon"><i class="fas fa-question-circle" title="3-digit security code on the back of your card"></i></div>
-                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
-                        <button type="submit" id="submit-btn" class="btn" name="verify_payment">
-                            <i class="fas fa-check-circle"></i> Place Order
+                        <button type="submit" id="submit-btn" class="btn" name="place_order">
+                        <i class="fas fa-check-circle"></i> Place Order
                         </button>
                     </form>
                 <?php else: ?>
@@ -825,7 +826,7 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
                             
                             <div class="timer">
                                 <div>OTP expires in <span id="timer">05:00</span></div>
-                                <div>Didn't receive the code? <a href="#" class="resend-link" style="display: none;">Resend</a></div>
+                                <div>Didn't receive the code? <a href="#" class="resend-link" id="resend-otp">Resend</a></div>
                             </div>
                             
                             <button type="submit" class="btn btn-success" name="confirm_order">
@@ -857,6 +858,8 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
             
             // Start countdown timer for OTP
             const timerElement = document.getElementById('timer');
+            const resendLink = document.getElementById('resend-otp');
+            
             if (timerElement) {
                 let timeLeft = 5 * 60; // 5 minutes in seconds
                 
@@ -869,26 +872,104 @@ function processOrder($conn, $user_id, $cart_items, $post_data) {
                     if (timeLeft <= 0) {
                         clearInterval(countdown);
                         timerElement.innerHTML = "00:00";
-                        document.querySelector('.resend-link').style.display = 'inline-block';
+                        resendLink.style.display = 'inline-block';
                     }
                     
                     timeLeft--;
                 }, 1000);
                 
-                // Resend OTP functionality
-                document.querySelector('.resend-link').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // Generate new OTP and log to console
-                    const newOTP = Math.floor(100000 + Math.random() * 900000);
-                    console.log('New OTP: ' + newOTP);
+                // Initially hide the resend link
+                if(resendLink) {
+                    resendLink.style.display = 'none';
                     
-                    // Reset timer
-                    timeLeft = 5 * 60;
-                    timerElement.innerHTML = "05:00";
-                    
-                    alert('New OTP has been sent. Please check the console.');
-                });
+                    // Resend OTP functionality
+                    resendLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Show toast notification
+                        Toastify({
+                            text: "New OTP has been sent to your email!",
+                            duration: 3000,
+                            close: true,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                            stopOnFocus: true
+                        }).showToast();
+                        
+                        // Reset timer
+                        timeLeft = 5 * 60;
+                        timerElement.innerHTML = "05:00";
+                        resendLink.style.display = 'none';
+                        
+                        // Submit form to request new OTP
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = 'checkout.php';
+                        
+                        // Add necessary hidden fields
+                        const paymentMethodInput = document.createElement('input');
+                        paymentMethodInput.type = 'hidden';
+                        paymentMethodInput.name = 'payment_method';
+                        paymentMethodInput.value = 'Card';
+                        form.appendChild(paymentMethodInput);
+                        
+                        const verifyPaymentInput = document.createElement('input');
+                        verifyPaymentInput.type = 'hidden';
+                        verifyPaymentInput.name = 'verify_payment';
+                        verifyPaymentInput.value = '1';
+                        form.appendChild(verifyPaymentInput);
+                        
+                        // Get address from existing form
+                        const addressValue = document.querySelector('input[name="address"]').value;
+                        const addressInput = document.createElement('input');
+                        addressInput.type = 'hidden';
+                        addressInput.name = 'address';
+                        addressInput.value = addressValue;
+                        form.appendChild(addressInput);
+                        
+                        // Check if custom address exists
+                        const customAddressInput = document.querySelector('input[name="custom_address"]');
+                        if (customAddressInput) {
+                            const newCustomAddressInput = document.createElement('input');
+                            newCustomAddressInput.type = 'hidden';
+                            newCustomAddressInput.name = 'custom_address';
+                            newCustomAddressInput.value = customAddressInput.value;
+                            form.appendChild(newCustomAddressInput);
+                        }
+                        
+                        // Append to body and submit
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                }
             }
+            
+            // Show success toast if needed
+            <?php if (isset($_POST['verify_payment']) && isset($emailSent) && $emailSent): ?>
+            Toastify({
+                text: "OTP sent to your email successfully!",
+                duration: 3000,
+                close: true,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "linear-gradient(to right, #4c8bf5, #5d9cff)",
+                stopOnFocus: true
+            }).showToast();
+            <?php endif; ?>
+            
+            // Show error toast if OTP validation failed
+            <?php if (isset($_POST['confirm_order']) && (!isset($_POST['otp']) || $_POST['otp'] != $_SESSION['otp'])): ?>
+            Toastify({
+                text: "Invalid OTP! Please try again.",
+                duration: 3000,
+                close: true,
+                gravity: "top",
+                position: "right",
+                backgroundColor: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                stopOnFocus: true
+            }).showToast();
+            <?php endif; ?>
         });
     </script>
 </body>
