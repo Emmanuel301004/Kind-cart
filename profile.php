@@ -21,6 +21,37 @@ if (!$stmt->fetch()) {
     $user_name = $email = $course = $semester = ''; // Set default empty values
 }
 $stmt->close();
+
+// Fetch sales statistics
+$sql_sales = "SELECT 
+              COUNT(*) as total_sales,
+              
+                 SUM(CASE WHEN status = 'Delivered' THEN book_price ELSE 0 END) as total_revenue,
+              COUNT(CASE WHEN status = 'Delivered' THEN 1 END) as completed_orders,
+              COUNT(CASE WHEN status = 'Processing' THEN 1 END) as processing_orders
+            FROM orders 
+            WHERE owner_name = (SELECT name FROM users WHERE id = ?) OR user_id = ?";
+$stmt_sales = $conn->prepare($sql_sales);
+$stmt_sales->bind_param("ii", $user_id, $user_id);
+$stmt_sales->execute();
+$stmt_sales->bind_result($total_sales, $total_revenue, $completed_orders, $processing_orders);
+$stmt_sales->fetch();
+$stmt_sales->close();
+
+
+// Format the total revenue to handle null values
+$total_revenue = $total_revenue ? number_format($total_revenue, 2) : '0.00';
+
+// Get recent orders (both buying and selling)
+$sql_recent_orders = "SELECT id, book_title, book_price, order_date, status 
+                      FROM orders 
+                      WHERE user_id = ? OR owner_name = (SELECT name FROM users WHERE id = ?)
+                      ORDER BY order_date DESC LIMIT 5";
+$stmt_recent = $conn->prepare($sql_recent_orders);
+$stmt_recent->bind_param("ii", $user_id, $user_id);
+$stmt_recent->execute();
+$recent_orders = $stmt_recent->get_result();
+$stmt_recent->close();
 ?>
 
 <!DOCTYPE html>
@@ -28,7 +59,8 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title>Profile & Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -100,18 +132,81 @@ $stmt->close();
             display: block;
         }
        
-        /* Enhanced profile container - IMPROVED STYLING */
+        /* Main container */
+        .main-container {
+            margin: 100px auto 60px;
+            width: 92%;
+            max-width: 1200px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        /* Tabs navigation */
+        .tabs-nav {
+            display: flex;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 10px;
+        }
+
+        .tab-link {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            background: white;
+            color: #555;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-link.active {
+            color: #2e7d32;
+            border-bottom: 3px solid #2e7d32;
+            background: #f9fff9;
+        }
+
+        .tab-link:hover:not(.active) {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .tab-link i {
+            margin-right: 8px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            width: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Enhanced profile container */
         .profile-container {
-            margin: 120px auto 60px;
-            padding: 40px;
             background-color: #fff;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            width: 92%;
-            max-width: 650px;
+            padding: 40px;
             transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
+            margin-bottom: 30px;
+            width: 100%;
         }
 
         .profile-container::before {
@@ -149,6 +244,14 @@ $stmt->close();
             height: 3px;
             background: linear-gradient(to right, #4CAF50, #2e7d32);
             border-radius: 3px;
+        }
+
+        h2 {
+            font-size: 24px;
+            color: #2e7d32;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
         .info {
@@ -232,26 +335,22 @@ $stmt->close();
             left: 100%;
         }
 
-        #editBtn {
+        .btn-primary {
             background: linear-gradient(to right, #2196F3, #1976D2);
             color: white;
         }
 
-        #saveBtn {
-            display: none;
+        .btn-success {
             background: linear-gradient(to right, #4CAF50, #2e7d32);
             color: white;
         }
 
-        #editBtn:hover {
-            background: linear-gradient(to right, #1E88E5, #1565C0);
+        .btn-danger {
+            background: linear-gradient(to right, #f44336, #d32f2f);
+            color: white;
         }
 
-        #saveBtn:hover {
-            background: linear-gradient(to right, #43A047, #2E7D32);
-        }
-
-        /* Form field styling - IMPROVED */
+        /* Form field styling */
         .form-group {
             position: relative;
             margin-bottom: 5px;
@@ -276,7 +375,118 @@ $stmt->close();
             color: #2e7d32;
         }
         
-        /* Mobile menu button - kept intact */
+        /* Security settings */
+        .settings-group {
+            margin-bottom: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        /* Statistics cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+            color: #2e7d32;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        /* Tables */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-delivered {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-processing {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+
+        .view-all-btn {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .view-all-btn:hover {
+            text-decoration: underline;
+        }
+        
+        /* Mobile menu button */
         .menu-toggle {
             display: none;
             flex-direction: column;
@@ -295,7 +505,7 @@ $stmt->close();
             transition: all 0.3s ease;
         }
         
-        /* Responsive navbar adjustments - kept intact */
+        /* Responsive navbar adjustments */
         @media (max-width: 768px) {
             .navbar {
                 padding: 15px;
@@ -377,27 +587,48 @@ $stmt->close();
                 visibility: visible;
             }
 
-            /* Adjust profile container for mobile */
-            .profile-container {
-                margin: 100px auto 40px;
-                padding: 25px 20px;
+            /* Adjust container for mobile */
+            .main-container {
+                margin: 90px auto 40px;
                 width: 90%;
             }
 
-            form input {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-container {
+                padding: 25px 20px;
+            }
+
+            form input, button {
                 padding: 12px 15px;
             }
 
-            button {
-                padding: 12px 25px;
+            .button-container {
+                flex-direction: column;
             }
         }
         
-        /* Fix profile dropdown for mobile - kept intact */
+        /* Fix profile dropdown for mobile */
         @media (max-width: 768px) {
             .profile-dropdown-content {
                 right: 0;
                 top: 40px;
+            }
+            
+            .tabs-nav {
+                flex-direction: column;
+            }
+            
+            .tab-link {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+            
+            .tab-link.active {
+                border-bottom: none;
+                border-left: 3px solid #2e7d32;
             }
         }
     </style>
@@ -434,90 +665,242 @@ $stmt->close();
 <!-- Add this overlay div right after the navbar -->
 <div class="menu-overlay" id="menu-overlay"></div>
 
+<div class="main-container">
+    <!-- Tabs navigation -->
+    <div class="tabs-nav">
+        <div class="tab-link active" data-tab="profile">
+            <i class="fas fa-user"></i> Profile
+        </div>
+        <div class="tab-link" data-tab="settings">
+            <i class="fas fa-cog"></i> Settings
+        </div>
+        <div class="tab-link" data-tab="reports">
+            <i class="fas fa-chart-bar"></i> Sales Reports
+        </div>
+        <div class="tab-link" data-tab="orders">
+            <i class="fas fa-shopping-bag"></i> Order History
+        </div>
+    </div>
+    
+    <!-- Profile Tab -->
+    <div id="profile" class="tab-content active">
+        <div class="profile-container">
+            <h1>Your Profile</h1>
+            <form action="update_profile.php" method="post" id="profileForm">
+                <div class="form-group">
+                    <label class="form-field-label" for="name">Name</label>
+                    <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($user_name); ?>" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-field-label" for="email">Email</label>
+                    <input type="text" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-field-label" for="course">Course</label>
+                    <input type="text" id="course" name="course" value="<?php echo htmlspecialchars($course); ?>" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-field-label" for="semester">Semester</label>
+                    <input type="text" id="semester" name="semester" value="<?php echo htmlspecialchars($semester); ?>" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-field-label" for="address">Default Address</label>
+                    <input type="text" id="address" name="address" value="Chapel" disabled>
+                </div>
 
-<div class="profile-container">
-    <h1>Your Profile</h1>
-    <form action="update_profile.php" method="post" id="profileForm">
-        <div class="form-group">
-            <label class="form-field-label" for="name">Name</label>
-            <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($user_name); ?>" disabled>
+                <div class="button-container">
+                    <button type="button" id="editBtn" class="btn-primary" onclick="enableEdit()">Edit Profile</button>
+                    <button type="submit" id="saveBtn" class="btn-success" style="display: none;">Save Changes</button>
+                </div>
+            </form>
         </div>
-        
-        <div class="form-group">
-            <label class="form-field-label" for="email">Email</label>
-            <input type="text" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" disabled>
+    </div>
+    
+    <!-- Settings Tab -->
+    <div id="settings" class="tab-content">
+        <div class="profile-container">
+            <h1>Account Settings</h1>
+            
+            <form action="update_settings.php" method="post" id="settingsForm">               
+                <div class="settings-group">
+                    <h2><i class="fas fa-shield-alt"></i> Security Settings</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-field-label" for="current_password">Current Password</label>
+                        <input type="password" id="current_password" name="current_password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-field-label" for="new_password">New Password</label>
+                        <input type="password" id="new_password" name="new_password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-field-label" for="confirm_password">Confirm New Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password">
+                    </div>
+                </div>
+                
+                <div class="button-container">
+                    <button type="submit" class="btn-success">Save Settings</button>
+                </div>
+            </form>
         </div>
-        
-        <div class="form-group">
-            <label class="form-field-label" for="course">Course</label>
-            <input type="text" id="course" name="course" value="<?php echo htmlspecialchars($course); ?>" disabled>
+    </div>
+    
+    <!-- Reports Tab -->
+    <div id="reports" class="tab-content">
+        <div class="profile-container">
+            <h1>Sales & Performance Reports</h1>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <p class="stat-value"><?php echo $total_sales; ?></p>
+                    <p class="stat-label">Total Sales</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <p class="stat-value">₹<?php echo $total_revenue; ?></p>
+                    <p class="stat-label">Total Revenue</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <p class="stat-value"><?php echo $completed_orders; ?></p>
+                    <p class="stat-label">Completed Orders</p>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <p class="stat-value"><?php echo $processing_orders; ?></p>
+                    <p class="stat-label">Processing Orders</p>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2><i class="fas fa-chart-bar"></i> Sales Overview</h2>
+                <p>Your monthly sales performance will be displayed here.</p>
+                <!-- In a future implementation, we can add a chart library like Chart.js here -->
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label class="form-field-label" for="semester">Semester</label>
-            <input type="text" id="semester" name="semester" value="<?php echo htmlspecialchars($semester); ?>" disabled>
+    </div>
+    
+    <!-- Orders Tab -->
+    <div id="orders" class="tab-content">
+        <div class="profile-container">
+            <h1>Recent Orders</h1>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Book Title</th>
+                            <th>Price</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if ($recent_orders->num_rows > 0) {
+                            while ($row = $recent_orders->fetch_assoc()) {
+                                echo '<tr>';
+                                echo '<td>#' . $row['id'] . '</td>';
+                                echo '<td>' . htmlspecialchars($row['book_title']) . '</td>';
+                                echo '<td>₹' . number_format($row['book_price'], 2) . '</td>';
+                                echo '<td>' . date('M d, Y', strtotime($row['order_date'])) . '</td>';
+                                
+                                $status_class = ($row['status'] == 'Delivered') ? 'status-delivered' : 'status-processing';
+                                echo '<td><span class="status-pill ' . $status_class . '">' . $row['status'] . '</span></td>';
+                                
+                                echo '</tr>';
+                            }
+                        } else {
+                            echo '<tr><td colspan="5" style="text-align: center;">No orders found</td></tr>';
+                        }
+                        ?>
+                    </tbody>
+                </table>
+                <a href="order_history.php" class="view-all-btn">View All Orders</a>
+            </div>
         </div>
-
-        <div class="button-container">
-            <button type="button" id="editBtn" onclick="enableEdit()">Edit Profile</button>
-            <button type="submit" id="saveBtn">Save Changes</button>
-        </div>
-    </form>
+    </div>
 </div>
 
 <script>
-    // Add this to your existing JavaScript at the bottom of your file
-document.addEventListener('DOMContentLoaded', function() {
+    // Toggle mobile menu
     const mobileMenu = document.getElementById('mobile-menu');
     const navLinks = document.getElementById('nav-links');
     const menuOverlay = document.getElementById('menu-overlay');
     
-    // Toggle mobile menu
-    mobileMenu.addEventListener('click', function() {
-        this.classList.toggle('active');
+    mobileMenu.addEventListener('click', () => {
+        mobileMenu.classList.toggle('active');
         navLinks.classList.toggle('active');
         menuOverlay.classList.toggle('active');
         document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
     });
     
-    // Close menu when clicking on overlay
-    menuOverlay.addEventListener('click', function() {
+    menuOverlay.addEventListener('click', () => {
         mobileMenu.classList.remove('active');
         navLinks.classList.remove('active');
         menuOverlay.classList.remove('active');
         document.body.style.overflow = '';
     });
     
-    // Close menu when clicking a link
-    const menuLinks = navLinks.querySelectorAll('a');
-    menuLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            mobileMenu.classList.remove('active');
-            navLinks.classList.remove('active');
-            menuOverlay.classList.remove('active');
-            document.body.style.overflow = '';
+    // Tab functionality
+    const tabLinks = document.querySelectorAll('.tab-link');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            const tabId = link.getAttribute('data-tab');
+            
+            // Remove active class from all tabs
+            tabLinks.forEach(item => item.classList.remove('active'));
+            tabContents.forEach(item => item.classList.remove('active'));
+            
+            // Add active class to selected tab
+            link.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
         });
     });
     
-    // Close menu when window resizes to desktop size
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
-            mobileMenu.classList.remove('active');
-            navLinks.classList.remove('active');
-            menuOverlay.classList.remove('active');
-            document.body.style.overflow = '';
+    // Enable edit mode for profile form
+    function enableEdit() {
+        const inputs = document.querySelectorAll('#profileForm input:not([name="email"])');
+        inputs.forEach(input => {
+            input.disabled = false;
+        });
+        
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'block';
+    }
+    
+    // Form validation for password change
+    document.getElementById('settingsForm').addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            alert('New passwords do not match!');
         }
     });
-});
-    function enableEdit() {
-        // Enable all input fields
-        document.getElementById("name").disabled = false;
-        document.getElementById("course").disabled = false;
-        document.getElementById("semester").disabled = false;
-        document.getElementById("saveBtn").style.display = "inline-block"; // Show Save button
-        document.getElementById("editBtn").style.display = "none"; // Hide Edit button
-    }
 </script>
-
 </body>
 </html>

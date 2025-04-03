@@ -469,19 +469,19 @@ $orders_result = $stmt->get_result();
                             <?php while ($order = mysqli_fetch_assoc($orders_result)): 
                                 $delivery_date = new DateTime($order['delivery_date']);
                                 $current_date = new DateTime();
-                                $status = ($current_date >= $delivery_date) ? "<span class='delivered'>Delivered</span>" : "<span class='pending'>Pending</span>";
-                                
-                                // Payment status
-                                $payment_status = "";
-                                if ($order['payment_method'] == 'COD') {
-                                    if ($current_date >= $delivery_date && $order['status'] == 'Delivered') {
-                                        $payment_status = "<span class='paid'>Paid</span>";
-                                    } else {
-                                        $payment_status = "<span class='to-be-paid'>Amount to be paid: ₹" . number_format($order['book_price'], 2) . "</span>";
-                                    }
-                                } else {
-                                    $payment_status = "<span class='paid'>Paid Online</span>";
-                                }
+                                $status = "<span class='" . strtolower($order['status']) . "'>" . $order['status'] . "</span>";
+                                // Replace the existing payment status code block with this:
+$payment_status = "";
+if ($order['payment_method'] == 'COD') {
+    // If the visual status is "Delivered" (based on date), mark as paid regardless of database status
+    if ($current_date >= $delivery_date) {
+        $payment_status = "<span class='paid'>Paid</span>";
+    } else {
+        $payment_status = "<span class='to-be-paid'>Amount to be paid: ₹" . number_format($order['book_price'], 2) . "</span>";
+    }
+} else {
+    $payment_status = "<span class='paid'>Paid Online</span>";
+}
                             ?>
                                 <tr>
                                     <td class="book-title"><?php echo htmlspecialchars($order['book_title']); ?></td>
