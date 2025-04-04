@@ -730,18 +730,27 @@ $stmt_recent->close();
                     <h2><i class="fas fa-shield-alt"></i> Security Settings</h2>
                     
                     <div class="form-group">
-                        <label class="form-field-label" for="current_password">Current Password</label>
-                        <input type="password" id="current_password" name="current_password">
+                    <label class="form-field-label" for="current_password">Current Password</label>
+                    <div style="position: relative;">
+        <input type="password" id="current_password" name="current_password">
+        <i class="fas fa-eye password-toggle" data-toggle="current_password" onclick="togglePasswordVisibility('current_password')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #777;"></i>
+    </div>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-field-label" for="new_password">New Password</label>
-                        <input type="password" id="new_password" name="new_password">
+                        <div style="position: relative;">
+        <input type="password" id="new_password" name="new_password">
+        <i class="fas fa-eye password-toggle" data-toggle="new_password" onclick="togglePasswordVisibility('new_password')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #777;"></i>
+    </div>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-field-label" for="confirm_password">Confirm New Password</label>
-                        <input type="password" id="confirm_password" name="confirm_password">
+                        <div style="position: relative;">
+        <input type="password" id="confirm_password" name="confirm_password">
+        <i class="fas fa-eye password-toggle" data-toggle="confirm_password" onclick="togglePasswordVisibility('confirm_password')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #777;"></i>
+    </div>
                     </div>
                 </div>
                 
@@ -901,6 +910,22 @@ $stmt_recent->close();
             alert('New passwords do not match!');
         }
     });
+
+    // Add this to your existing script section
+function togglePasswordVisibility(inputId) {
+    const passwordInput = document.getElementById(inputId);
+    const icon = document.querySelector(`[data-toggle="${inputId}"]`);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
 </script>
 </body>
 </html>

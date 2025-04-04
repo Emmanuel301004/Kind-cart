@@ -29,6 +29,126 @@ if (isset($_POST['cancel_order'])) {
     exit();
 }
 
+// Handle Export functionality
+if (isset($_GET['export'])) {
+    $export_type = $_GET['export'];
+    
+    // Fetch all user's orders for export
+    $export_query = "SELECT o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, 
+                    DATE_ADD(o.order_date, INTERVAL 2 DAY) AS delivery_date,
+                    o.status, o.payment_method, o.address 
+                    FROM orders o
+                    INNER JOIN books b ON o.book_title = b.title
+                    WHERE o.user_id=? AND b.status = 'Reserved'
+                    ORDER BY o.order_date DESC";
+
+    $stmt = $conn->prepare($export_query);
+    $stmt->bind_param("s", $user_id);
+    $stmt->execute();
+    $export_result = $stmt->get_result();
+    
+    if ($export_type == 'excel') {
+        // Export as Excel
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="order_history.xls"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        
+        echo "Book Title\tOwner\tContact\tPrice\tOrder Date\tDelivery Date\tStatus\tPayment Method\tShipping Address\n";
+        
+        while ($row = mysqli_fetch_assoc($export_result)) {
+            echo $row['book_title'] . "\t";
+            echo $row['owner_name'] . "\t";
+            echo $row['contact'] . "\t";
+            echo number_format($row['book_price'], 2) . "\t"; // Removed rupee symbol
+            echo date("d M Y", strtotime($row['order_date'])) . "\t";
+            echo date("d M Y", strtotime($row['delivery_date'])) . "\t";
+            echo $row['status'] . "\t";
+            echo $row['payment_method'] . "\t";
+            echo str_replace("\n", " ", $row['address']) . "\n";
+        }
+        exit;
+    } 
+    elseif ($export_type == 'pdf') {
+        // Check if we can use a simple PDF generation approach
+        // We'll use PHP's built-in output buffering to create a simple PDF
+        
+        ob_start();
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Order History</title>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #2e7d32; color: white; }
+                h1 { color: #2e7d32; }
+                .header { text-align: center; margin-bottom: 30px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Kind Kart - Order History</h1>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Owner</th>
+                        <th>Price</th>
+                        <th>Order Date</th>
+                        <th>Delivery Date</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php while ($row = mysqli_fetch_assoc($export_result)): 
+                    $payment_status = ($row['payment_method'] == 'COD') ? 'COD' : 'Paid Online';
+                ?>
+                    <tr>
+                        <td><?php echo $row['book_title']; ?></td>
+                        <td><?php echo $row['owner_name']; ?></td>
+                        <td><?php echo number_format($row['book_price'], 2); ?></td>
+                        <td><?php echo date("d M Y", strtotime($row['order_date'])); ?></td>
+                        <td><?php echo date("d M Y", strtotime($row['delivery_date'])); ?></td>
+                        <td><?php echo $row['status']; ?></td>
+                        <td><?php echo $payment_status; ?></td>
+                    </tr>
+                <?php endwhile; ?>
+                </tbody>
+            </table>
+        </body>
+        </html>
+        <?php
+        $html = ob_get_clean();
+        
+// Now convert HTML to PDF using mPDF library (if available) or display HTML
+if (class_exists('\Mpdf\Mpdf')) {
+    try {
+        $mpdf = new \Mpdf\Mpdf();
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('order_history.pdf', 'D');
+        exit;
+    } catch (Exception $e) {
+        // Fall back to HTML output if mPDF fails
+        $_SESSION['export_error'] = "PDF generation failed. Using HTML format instead.";
+        header("Content-Type: text/html");
+        header("Content-Disposition: attachment; filename=order_history.html");
+        echo $html;
+        exit;
+    }
+} else {
+    // If no PDF library is available, output as HTML file
+    $_SESSION['export_error'] = "PDF library not available. Using HTML format instead.";
+    header("Content-Type: text/html");
+    header("Content-Disposition: attachment; filename=order_history.html");
+    echo $html;
+    exit;
+}}}
 // Fetch user's orders with only reserved books
 $orders_query = "SELECT o.id, o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, o.address, o.status,
                  o.payment_method, DATE_ADD(o.order_date, INTERVAL 2 DAY) AS delivery_date 
@@ -285,19 +405,72 @@ $orders_result = $stmt->get_result();
             font-size: 14px;
         }
         
+        /* Export buttons styles */
+        .export-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .export-btn {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .export-btn:hover {
+            background: #1b5e20;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .export-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+        
+        .export-error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
         @media (max-width: 768px) {
             th, td {
                 padding: 12px 10px;
                 font-size: 14px;
             }
             
-            .cancel-btn {
+            .cancel-btn, .export-btn {
                 padding: 6px 10px;
                 font-size: 12px;
             }
             
             .page-container {
                 margin-top: 80px;
+            }
+            
+            .export-container {
+                justify-content: center;
+                flex-wrap: wrap;
             }
         }
             /* Mobile menu button */
@@ -449,7 +622,25 @@ $orders_result = $stmt->get_result();
             <h2>Your Order History</h2>
             <p class="order-summary">View and manage your reserved book orders</p>
             
+            <?php if (isset($_SESSION['export_error'])): ?>
+            <div class="export-error">
+                <?php echo $_SESSION['export_error']; unset($_SESSION['export_error']); ?>
+            </div>
+            <?php endif; ?>
+            
             <?php if (mysqli_num_rows($orders_result) > 0): ?>
+                <!-- Add export buttons -->
+                <div class="export-container">
+                    <a href="order_history.php?export=excel" class="export-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M21.17,3.25H2.83c-0.41,0-0.75,0.34-0.75,0.75v15c0,0.41,0.34,0.75,0.75,0.75h18.33c0.41,0,0.75-0.34,0.75-0.75V4C21.92,3.59,21.58,3.25,21.17,3.25z M20.42,18.25H3.58V4.75h16.83V18.25z"/>
+                            <path d="M9.5,16.25l3-8h1.5l3,8h-1.6l-0.8-2h-2.7l-0.8,2H9.5z M12.7,12.75h1.6l-0.8-2.4L12.7,12.75z"/>
+                            <path d="M7,13.75H5v2.5H3.5v-8H7c1.4,0,2.5,1.1,2.5,2.5v0.5C9.5,12.65,8.4,13.75,7,13.75z M7,9.75H5v2.5h2c0.55,0,1-0.45,1-1v-0.5C8,10.2,7.55,9.75,7,9.75z"/>
+                        </svg>
+                        Export to Excel
+                    </a>
+                </div>
+                
                 <div class="table-container">
                     <table>
                         <thead>
@@ -471,17 +662,17 @@ $orders_result = $stmt->get_result();
                                 $current_date = new DateTime();
                                 $status = "<span class='" . strtolower($order['status']) . "'>" . $order['status'] . "</span>";
                                 // Replace the existing payment status code block with this:
-$payment_status = "";
-if ($order['payment_method'] == 'COD') {
-    // If the visual status is "Delivered" (based on date), mark as paid regardless of database status
-    if ($current_date >= $delivery_date) {
-        $payment_status = "<span class='paid'>Paid</span>";
-    } else {
-        $payment_status = "<span class='to-be-paid'>Amount to be paid: ₹" . number_format($order['book_price'], 2) . "</span>";
-    }
-} else {
-    $payment_status = "<span class='paid'>Paid Online</span>";
-}
+                                $payment_status = "";
+                                if ($order['payment_method'] == 'COD') {
+                                    // If the visual status is "Delivered" (based on date), mark as paid regardless of database status
+                                    if ($current_date >= $delivery_date) {
+                                        $payment_status = "<span class='paid'>Paid</span>";
+                                    } else {
+                                        $payment_status = "<span class='to-be-paid'>Amount to be paid: ₹" . number_format($order['book_price'], 2) . "</span>";
+                                    }
+                                } else {
+                                    $payment_status = "<span class='paid'>Paid Online</span>";
+                                }
                             ?>
                                 <tr>
                                     <td class="book-title"><?php echo htmlspecialchars($order['book_title']); ?></td>
