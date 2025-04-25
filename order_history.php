@@ -47,7 +47,7 @@ if (isset($_GET['export'])) {
     $stmt->execute();
     $export_result = $stmt->get_result();
     
-    if ($export_type == 'excel') {
+  if ($export_type == 'excel') {
         // Export as Excel
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment; filename="order_history.xls"');
@@ -70,9 +70,62 @@ if (isset($_GET['export'])) {
         exit;
     } 
     elseif ($export_type == 'pdf') {
-        // Check if we can use a simple PDF generation approach
-        // We'll use PHP's built-in output buffering to create a simple PDF
-        
+    require_once('vendor/tecnickcom/tcpdf/tcpdf.php'); // Adjusted path: going one directory up from 'tools' to access 'tcpdf.php'
+
+    // Create new PDF document
+    $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+    $pdf->SetCreator('Your Site');
+    $pdf->SetAuthor('Your Name');
+    $pdf->SetTitle('Order History');
+    $pdf->SetSubject('Order Export');
+    $pdf->SetMargins(10, 10, 10);
+    $pdf->SetAutoPageBreak(TRUE, 10);
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', '', 10);
+
+    // Table Header
+    $html = '
+    <table border="1" cellpadding="4">
+        <thead>
+            <tr style="background-color:#f2f2f2;">
+                <th><b>Book Title</b></th>
+                <th><b>Owner</b></th>
+                <th><b>Contact</b></th>
+                <th><b>Price</b></th>
+                <th><b>Order Date</b></th>
+                <th><b>Delivery Date</b></th>
+                <th><b>Status</b></th>
+                <th><b>Payment Method</b></th>
+                <th><b>Shipping Address</b></th>
+            </tr>
+        </thead>
+        <tbody>
+    ';
+
+    while ($row = mysqli_fetch_assoc($export_result)) {
+        $html .= '<tr>
+            <td>' . htmlspecialchars($row['book_title']) . '</td>
+            <td>' . htmlspecialchars($row['owner_name']) . '</td>
+            <td>' . htmlspecialchars($row['contact']) . '</td>
+            <td>' . number_format($row['book_price'], 2) . '</td>
+            <td>' . date("d M Y", strtotime($row['order_date'])) . '</td>
+            <td>' . date("d M Y", strtotime($row['delivery_date'])) . '</td>
+            <td>' . htmlspecialchars($row['status']) . '</td>
+            <td>' . htmlspecialchars($row['payment_method']) . '</td>
+            <td>' . nl2br(htmlspecialchars($row['address'])) . '</td>
+        </tr>';
+    }
+
+    $html .= '</tbody></table>';
+
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    // Output PDF to browser
+    $pdf->Output('order_history.pdf', 'D'); // 'D' for download
+    exit;
+}
+
         ob_start();
         ?>
         <!DOCTYPE html>
@@ -148,7 +201,7 @@ if (class_exists('\Mpdf\Mpdf')) {
     header("Content-Disposition: attachment; filename=order_history.html");
     echo $html;
     exit;
-}}}
+}}
 // Fetch user's orders with only reserved books
 $orders_query = "SELECT o.id, o.book_title, o.owner_name, o.contact, o.book_price, o.order_date, o.address, o.status,
                  o.payment_method, DATE_ADD(o.order_date, INTERVAL 2 DAY) AS delivery_date 
@@ -630,6 +683,25 @@ $orders_result = $stmt->get_result();
             
             <?php if (mysqli_num_rows($orders_result) > 0): ?>
                 <!-- Add export buttons -->
+           <!-- Replace the two export containers with this single container -->
+<div class="export-container">
+    <a href="order_history.php?export=excel" class="export-btn excel-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M21.17,3.25H2.83c-0.41,0-0.75,0.34-0.75,0.75v15c0,0.41,0.34,0.75,0.75,0.75h18.33c0.41,0,0.75-0.34,0.75-0.75V4C21.92,3.59,21.58,3.25,21.17,3.25z M20.42,18.25H3.58V4.75h16.83V18.25z"/>
+            <path d="M9.5,16.25l3-8h1.5l3,8h-1.6l-0.8-2h-2.7l-0.8,2H9.5z M12.7,12.75h1.6l-0.8-2.4L12.7,12.75z"/>
+            <path d="M7,13.75H5v2.5H3.5v-8H7c1.4,0,2.5,1.1,2.5,2.5v0.5C9.5,12.65,8.4,13.75,7,13.75z M7,9.75H5v2.5h2c0.55,0,1-0.45,1-1v-0.5C8,10.2,7.55,9.75,7,9.75z"/>
+        </svg>
+        Export to Excel
+    </a>
+    <a href="order_history.php?export=pdf" class="export-btn pdf-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M20,2H8C6.9,2,6,2.9,6,4v12c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4C22,2.9,21.1,2,20,2z M20,16H8V4h12V16z"/>
+            <path d="M4,6H2v14c0,1.1,0.9,2,2,2h14v-2H4V6z"/>
+            <path d="M10,9h2v4h-2V9z M14,9h2v4h-2V9z M10,7h6v1h-6V7z M10,14h6v1h-6V14z"/>
+        </svg>
+        Export to PDF
+    </a>
+</div>
                 <div class="export-container">
                     <a href="order_history.php?export=excel" class="export-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -637,9 +709,10 @@ $orders_result = $stmt->get_result();
                             <path d="M9.5,16.25l3-8h1.5l3,8h-1.6l-0.8-2h-2.7l-0.8,2H9.5z M12.7,12.75h1.6l-0.8-2.4L12.7,12.75z"/>
                             <path d="M7,13.75H5v2.5H3.5v-8H7c1.4,0,2.5,1.1,2.5,2.5v0.5C9.5,12.65,8.4,13.75,7,13.75z M7,9.75H5v2.5h2c0.55,0,1-0.45,1-1v-0.5C8,10.2,7.55,9.75,7,9.75z"/>
                         </svg>
-                        Export to Excel
+                        Export to PDF
                     </a>
                 </div>
+                
                 
                 <div class="table-container">
                     <table>
