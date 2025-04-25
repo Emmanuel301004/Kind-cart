@@ -635,6 +635,52 @@ $orders_result = $stmt->get_result();
             top: 40px;
         }
     }
+    .excel-btn {
+    background: #1d6f42; /* Excel green color */
+}
+
+.excel-btn:hover {
+    background: #0e5a2f;
+}
+
+.pdf-btn {
+    background: #d04423; /* PDF red color */
+}
+
+.pdf-btn:hover {
+    background: #b03012;
+}
+
+.export-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    gap: 12px;
+}
+
+.export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.export-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
     </style>
 </head>
 <body>
@@ -702,16 +748,6 @@ $orders_result = $stmt->get_result();
         Export to PDF
     </a>
 </div>
-                <div class="export-container">
-                    <a href="order_history.php?export=excel" class="export-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path d="M21.17,3.25H2.83c-0.41,0-0.75,0.34-0.75,0.75v15c0,0.41,0.34,0.75,0.75,0.75h18.33c0.41,0,0.75-0.34,0.75-0.75V4C21.92,3.59,21.58,3.25,21.17,3.25z M20.42,18.25H3.58V4.75h16.83V18.25z"/>
-                            <path d="M9.5,16.25l3-8h1.5l3,8h-1.6l-0.8-2h-2.7l-0.8,2H9.5z M12.7,12.75h1.6l-0.8-2.4L12.7,12.75z"/>
-                            <path d="M7,13.75H5v2.5H3.5v-8H7c1.4,0,2.5,1.1,2.5,2.5v0.5C9.5,12.65,8.4,13.75,7,13.75z M7,9.75H5v2.5h2c0.55,0,1-0.45,1-1v-0.5C8,10.2,7.55,9.75,7,9.75z"/>
-                        </svg>
-                        Export to PDF
-                    </a>
-                </div>
                 
                 
                 <div class="table-container">
