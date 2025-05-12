@@ -12,8 +12,12 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Ensure the 'status' column exists in the books table
-$conn->query("ALTER TABLE books ADD COLUMN status ENUM('Available', 'Sold', 'Reserved') NOT NULL DEFAULT 'Available'");
+// Check if the 'status' column exists in the books table
+$result = $conn->query("SHOW COLUMNS FROM books LIKE 'status'");
+if ($result->num_rows == 0) {
+    // Only add the column if it doesn't exist
+    $conn->query("ALTER TABLE books ADD COLUMN status ENUM('Available', 'Sold', 'Reserved') NOT NULL DEFAULT 'Available'");
+}
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
